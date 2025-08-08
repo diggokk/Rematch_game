@@ -4,13 +4,454 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zelda Web - A Lenda Recomeça</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --grass-color: #2d5a27;
+            --grass-light: #3d8b3d;
+            --water-color: #1a5b7a;
+            --player-color: #4169e1;
+            --enemy-color: #c22e28;
+            --rupee-color: #0088ff;
+            --key-color: #ffff00;
+            --heart-color: #ff4444;
+            --shadow-color: rgba(0, 0, 0, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #111;
+            font-family: 'MedievalSharp', cursive;
+            overflow: hidden;
+            color: white;
+            text-shadow: 2px 2px 4px var(--shadow-color);
+        }
+
+        /* Tela de Carregamento */
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 1s;
+        }
+
+        .rupee-loader {
+            width: 60px;
+            height: 90px;
+            background-color: #0088ff;
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            margin: 0 auto 30px;
+            animation: rupeePulse 1.5s infinite alternate, rupeeSpin 4s linear infinite;
+            box-shadow: 0 0 25px #0088ff;
+            filter: drop-shadow(0 0 10px rgba(0, 136, 255, 0.7));
+        }
+
+        @keyframes rupeePulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(1.2); opacity: 1; }
+        }
+
+        @keyframes rupeeSpin {
+            0% { transform: rotateY(0deg); }
+            100% { transform: rotateY(360deg); }
+        }
+
+        .progress-bar {
+            width: 300px;
+            height: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            border-radius: 10px;
+            margin-top: 30px;
+            overflow: hidden;
+            border: 2px solid #654321;
+        }
+
+        .progress {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #0088ff, #00ff88);
+            border-radius: 8px;
+            transition: width 0.3s;
+        }
+
+        /* Jogo */
+        #game-container {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background-color: #000;
+            overflow: hidden;
+            border: 8px solid #654321;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
+            border-radius: 10px;
+            transform: scale(0.95);
+            transition: transform 0.3s;
+        }
+
+        #game-container:hover {
+            transform: scale(1);
+        }
+
+        #game-map {
+            width: 2400px;
+            height: 1800px;
+            background: 
+                linear-gradient(45deg, var(--grass-color) 25%, transparent 25%) -50px -50px,
+                linear-gradient(-45deg, var(--grass-color) 25%, transparent 25%) -50px -50px,
+                linear-gradient(45deg, transparent 75%, var(--grass-light) 75%),
+                linear-gradient(-45deg, transparent 75%, var(--grass-light) 75%);
+            background-size: 100px 100px;
+            position: absolute;
+            transition: all 0.5s ease-out;
+            will-change: transform;
+        }
+
+        #player {
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            background-color: var(--player-color);
+            border-radius: 5px;
+            z-index: 20;
+            transition: all 0.15s ease-out;
+            transform-origin: center;
+            box-shadow: 0 0 15px rgba(65, 105, 225, 0.7);
+            animation: pulse 2s infinite alternate;
+        }
+
+        #player::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 10px;
+            background-color: #333;
+            border-radius: 50% 50% 0 0;
+        }
+
+        .sword {
+            position: absolute;
+            width: 30px;
+            height: 8px;
+            background: linear-gradient(to right, #ccc, #fff);
+            border-radius: 4px;
+            top: 50%;
+            left: 48px;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 10;
+            box-shadow: 0 0 10px white;
+        }
+
+        #player.attacking .sword {
+            opacity: 1;
+            animation: swordAttack 0.3s forwards;
+        }
+
+        @keyframes swordAttack {
+            0% { transform: translateY(-50%) rotate(0deg); }
+            50% { transform: translateY(-50%) rotate(90deg); }
+            100% { transform: translateY(-50%) rotate(0deg); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 15px rgba(65, 105, 225, 0.7); }
+            50% { transform: scale(1.02); box-shadow: 0 0 25px rgba(65, 105, 225, 0.9); }
+            100% { transform: scale(1); box-shadow: 0 0 15px rgba(65, 105, 225, 0.7); }
+        }
+
+        .enemy {
+            position: absolute;
+            width: 48px;
+            height: 48px;
+            background-color: var(--enemy-color);
+            border-radius: 50%;
+            z-index: 15;
+            animation: enemyPulse 2s infinite alternate;
+            box-shadow: 0 0 15px rgba(194, 46, 40, 0.7);
+            will-change: transform, opacity;
+        }
+
+        @keyframes enemyPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .obstacle {
+            position: absolute;
+            background-color: #5a3d2e;
+            z-index: 10;
+            border: 4px solid #3a2a1e;
+            border-radius: 5px;
+            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+
+        .tree {
+            background: radial-gradient(circle at 30% 30%, #3a5a20, #2e4a10);
+            border-radius: 50% 50% 40% 40%;
+            position: relative;
+        }
+
+        .tree::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 30px;
+            background-color: #5a3d2e;
+            border-radius: 5px;
+        }
+
+        .water {
+            background: linear-gradient(45deg, var(--water-color) 25%, transparent 25%) -50px -50px,
+                       linear-gradient(-45deg, var(--water-color) 25%, transparent 25%) -50px -50px,
+                       linear-gradient(45deg, transparent 75%, #1a7ba5 75%),
+                       linear-gradient(-45deg, transparent 75%, #1a7ba5 75%);
+            background-size: 100px 100px;
+            animation: waterFlow 20s linear infinite;
+        }
+
+        @keyframes waterFlow {
+            0% { background-position: 0 0; }
+            100% { background-position: 200px 200px; }
+        }
+
+        .rupee {
+            position: absolute;
+            width: 24px;
+            height: 36px;
+            background-color: var(--rupee-color);
+            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+            z-index: 15;
+            animation: float 3s ease-in-out infinite, glow 2s alternate infinite;
+            box-shadow: 0 0 15px var(--rupee-color);
+            transform: translateY(0);
+            will-change: transform, opacity;
+        }
+
+        .key {
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            background-color: var(--key-color);
+            clip-path: polygon(50% 0%, 100% 30%, 80% 50%, 100% 70%, 50% 100%, 0% 70%, 20% 50%, 0% 30%);
+            z-index: 15;
+            animation: spin 4s linear infinite, glow-gold 2s alternate infinite;
+            will-change: transform, opacity;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes glow {
+            0% { box-shadow: 0 0 10px var(--rupee-color); }
+            100% { box-shadow: 0 0 20px var(--rupee-color); }
+        }
+
+        @keyframes glow-gold {
+            0% { box-shadow: 0 0 10px var(--key-color); }
+            100% { box-shadow: 0 0 20px var(--key-color); }
+        }
+
+        .heart {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background-color: var(--heart-color);
+            transform: rotate(45deg);
+            margin: 0 5px;
+            position: relative;
+            animation: heartbeat 1.5s infinite;
+        }
+
+        .heart::before,
+        .heart::after {
+            content: '';
+            width: 24px;
+            height: 24px;
+            background-color: var(--heart-color);
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .heart::before {
+            top: -12px;
+            left: 0;
+        }
+
+        .heart::after {
+            top: 0;
+            left: -12px;
+        }
+
+        @keyframes heartbeat {
+            0% { transform: rotate(45deg) scale(1); }
+            25% { transform: rotate(45deg) scale(1.1); }
+            50% { transform: rotate(45deg) scale(1); }
+            75% { transform: rotate(45deg) scale(1.2); }
+            100% { transform: rotate(45deg) scale(1); }
+        }
+
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 30;
+            display: flex;
+            gap: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 10px;
+            border: 2px solid #654321;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+        }
+
+        .hearts, .rupees, .keys {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 24px;
+        }
+
+        .rupees img, .keys img {
+            width: 24px;
+            height: 24px;
+        }
+
+        #dialog-box {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            background-color: rgba(0, 0, 0, 0.8);
+            border: 4px solid #654321;
+            border-radius: 10px;
+            padding: 20px;
+            z-index: 40;
+            display: none;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.9);
+        }
+
+        .dialog-content {
+            font-size: 18px;
+            margin-bottom: 15px;
+            line-height: 1.5;
+        }
+
+        .dialog-button {
+            background-color: #4169e1;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'MedievalSharp', cursive;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .dialog-button:hover {
+            background-color: #5a7be1;
+            transform: scale(1.05);
+        }
+
+        #particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Efeitos especiais */
+        .damage-effect {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 0, 0, 0.3);
+            z-index: 50;
+            pointer-events: none;
+            opacity: 0;
+        }
+
+        @keyframes damageFlash {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* Transições de tela */
+        .screen-transition {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: black;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+
+        .error-screen {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .error-screen button {
+            margin-top: 20px;
+            padding: 10px 25px;
+            background-color: #c22e28;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'MedievalSharp', cursive;
+            font-size: 18px;
+        }
+    </style>
 </head>
 <body>
     <div id="loading-screen">
-        <div class="loader"></div>
+        <div class="rupee-loader"></div>
         <h1>Carregando a Aventura...</h1>
+        <div class="progress-bar">
+            <div class="progress"></div>
+        </div>
     </div>
     
     <div id="game-container" class="hidden">
@@ -24,7 +465,7 @@
                 <span class="heart"></span>
                 <span class="heart"></span>
             </div>
-            <div class="rupees">0 <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyLDIwQTgsOCAwIDAsMSA0LDEyQTgsOCAwIDAsMSAxMiw0QTgsOCAwIDAsMSAyMCwxMkE4LDggMCAwLDEgMTIsMjBNMTIsMkExMCwxMCAwIDAsMCAyLDEyQTEwLDEwIDAgMCwwIDEyLDIyQTEwLDEwIDAgMCwwIDIyLDEyQTEwLTEwIDAgMCwwIDEyLDJaIiBmaWxsPSIjMDA4OGZmIi8+PC9zdmc+" alt="Rupee"></div>
+            <div class="rupees">0 <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyLDIwQTgsOCAwIDAsMSA0LDEyQTgsOCAwIDAsMSAxMiw0QTgsOCAwIDAsMSAyMCwxMkE4LDggMCAwLDEgMTIsMjBNMTIsMkExMCwxMCAwIDAsMCAyLDEyQTEwLDEwIDAgMCwwIDEyLDIyQTEwLDEwIDAgMCwwIDIyLDEyQTEwLTEwIDAgMCwwIDEyLDIiIGZpbGw9IiMwMDg4ZmYiLz48L3N2Zz4=" alt="Rupee"></div>
             <div class="keys">0 <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTcsMTdBMiwyIDAgMCwwIDksMTlIMjlBMiwyIDAgMCwwIDIxLDE3VjEzSDlBMiwyIDAgMCwwIDcsMTFWOUgxOVY3SDlBMiwyIDAgMCwwIDcsOVY3QTIsMiAwIDAsMCA5LDVIMjlBMiwyIDAgMCwwIDIxLDdWMTdNOSw5SDIxVjExSDlWOU0xNSwxM1YxNUgxN1YxM0gxNVoiIGZpbGw9IiNmZmZmMDAiLz48L3N2Zz4=" alt="Key"></div>
         </div>
         <div id="dialog-box" class="hidden">
@@ -34,10 +475,701 @@
         <div id="particles"></div>
     </div>
     
-    <audio id="bg-music" loop>
-        <source src="https://assets.codepen.io/21542/zelda-like-music.mp3" type="audio/mpeg">
+    <audio id="bg-music" preload="auto">
+        <source src="https://assets.codepen.io/21542/zelda-like-music-short.mp3" type="audio/mpeg">
     </audio>
     
-    <script src="game.js"></script>
+    <script>
+        // 🎮 Configurações Avançadas do Jogo
+        const config = {
+            playerSpeed: 6,
+            enemyCount: 8,
+            rupeeCount: 15,
+            keyCount: 3,
+            mapWidth: 2400,
+            mapHeight: 1800,
+            viewportWidth: 800,
+            viewportHeight: 600,
+            attackCooldown: 500,
+            enemySpawnRate: 10000,
+            musicVolume: 0.3
+        };
+
+        // 🏰 Estado do Jogo
+        const gameState = {
+            player: {
+                x: 1200,
+                y: 900,
+                health: 3,
+                maxHealth: 3,
+                rupees: 0,
+                keys: 0,
+                attacking: false,
+                lastAttack: 0,
+                direction: { x: 0, y: 1 }
+            },
+            keys: {},
+            enemies: [],
+            rupees: [],
+            keysItems: [],
+            obstacles: [],
+            gameTime: 0,
+            currentDialog: null,
+            inDialog: false
+        };
+
+        // 🎵 Efeitos Sonoros
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const sounds = {
+            sword: null,
+            rupee: null,
+            damage: null,
+            enemyDeath: null
+        };
+
+        // 🚀 Sistema de Carregamento Turbo
+        async function initGame() {
+            updateLoadingProgress(0, "Inicializando...");
+            
+            try {
+                await Promise.all([
+                    loadEssentialAssets(),
+                    simulateMinimumLoadTime()
+                ]);
+                
+                hideLoadingScreen();
+                startGame();
+            } catch (error) {
+                showErrorScreen();
+            }
+        }
+
+        // 📦 Carrega assets essenciais
+        async function loadEssentialAssets() {
+            updateLoadingProgress(10, "Carregando recursos...");
+            
+            // Pré-carrega apenas o necessário para iniciar
+            const assets = [
+                { type: 'audio', id: 'bg-music' }
+            ];
+            
+            await Promise.all(assets.map(asset => {
+                return new Promise((resolve) => {
+                    if (asset.type === 'audio') {
+                        const audio = document.getElementById(asset.id);
+                        audio.oncanplaythrough = resolve;
+                        audio.load();
+                    }
+                });
+            }));
+            
+            updateLoadingProgress(70, "Preparando mundo...");
+        }
+
+        // ⏳ Garante tempo mínimo de carregamento (para efeito)
+        function simulateMinimumLoadTime() {
+            return new Promise(resolve => {
+                setTimeout(resolve, 1500);
+            });
+        }
+
+        // 🎮 Inicia o jogo após carregamento
+        function startGame() {
+            const bgMusic = document.getElementById('bg-music');
+            bgMusic.volume = 0.3;
+            bgMusic.play().catch(e => console.log("Autoplay bloqueado:", e));
+            
+            generateWorld();
+            updateHUD();
+            setupEventListeners();
+            gameLoop();
+        }
+
+        // 📊 Atualiza barra de progresso
+        function updateLoadingProgress(percent, message) {
+            document.querySelector('.progress').style.width = `${percent}%`;
+            document.querySelector('#loading-screen h1').textContent = message;
+            
+            if (percent < 100) {
+                const nextPercent = Math.min(percent + Math.random() * 20, 99);
+                const messages = [
+                    "Obtendo itens mágicos...",
+                    "Preparando inimigos...",
+                    "Carregando texturas...",
+                    "Gerando terreno..."
+                ];
+                const nextMessage = messages[Math.floor(Math.random() * messages.length)];
+                
+                setTimeout(() => {
+                    updateLoadingProgress(nextPercent, nextMessage);
+                }, 300 + Math.random() * 500);
+            }
+        }
+
+        // 🎉 Esconde tela de carregamento
+        function hideLoadingScreen() {
+            updateLoadingProgress(100, "Pronto para a aventura!");
+            
+            setTimeout(() => {
+                const loadingScreen = document.getElementById('loading-screen');
+                loadingScreen.style.opacity = '0';
+                
+                setTimeout(() => {
+                    loadingScreen.classList.add('hidden');
+                    document.getElementById('game-container').classList.remove('hidden');
+                }, 500);
+            }, 800);
+        }
+
+        // ❌ Mostra erro se algo falhar
+        function showErrorScreen() {
+            document.getElementById('loading-screen').innerHTML = `
+                <div class="error-screen">
+                    <h1>Erro ao Carregar</h1>
+                    <p>A aventura não pode começar agora. Por favor, recarregue a página.</p>
+                    <button onclick="window.location.reload()">Tentar Novamente</button>
+                </div>
+            `;
+        }
+
+        // 🌍 Gera o mundo do jogo
+        function generateWorld() {
+            const gameMap = document.getElementById('game-map');
+            gameMap.innerHTML = '';
+            
+            createObstacles();
+            createCollectibles();
+            positionPlayer();
+        }
+
+        // 🌳 Cria obstáculos no mundo
+        function createObstacles() {
+            const gameMap = document.getElementById('game-map');
+            
+            // Floresta
+            for (let i = 0; i < 50; i++) {
+                const tree = {
+                    x: Math.random() * config.mapWidth,
+                    y: Math.random() * config.mapHeight,
+                    width: 60 + Math.random() * 40,
+                    height: 80 + Math.random() * 40,
+                    type: 'tree'
+                };
+                gameState.obstacles.push(tree);
+                
+                const treeElement = document.createElement('div');
+                treeElement.className = 'obstacle tree';
+                treeElement.style.left = `${tree.x - tree.width/2}px`;
+                treeElement.style.top = `${tree.y - tree.height/2}px`;
+                treeElement.style.width = `${tree.width}px`;
+                treeElement.style.height = `${tree.height}px`;
+                gameMap.appendChild(treeElement);
+            }
+            
+            // Lagos de água
+            for (let i = 0; i < 10; i++) {
+                const waterSize = 150 + Math.random() * 200;
+                const water = {
+                    x: Math.random() * (config.mapWidth - waterSize),
+                    y: Math.random() * (config.mapHeight - waterSize),
+                    width: waterSize,
+                    height: waterSize,
+                    type: 'water'
+                };
+                gameState.obstacles.push(water);
+                
+                const waterElement = document.createElement('div');
+                waterElement.className = 'obstacle water';
+                waterElement.style.left = `${water.x}px`;
+                waterElement.style.top = `${water.y}px`;
+                waterElement.style.width = `${water.width}px`;
+                waterElement.style.height = `${water.height}px`;
+                gameMap.appendChild(waterElement);
+            }
+        }
+
+        // 💎 Cria itens colecionáveis
+        function createCollectibles() {
+            // Rupees
+            for (let i = 0; i < config.rupeeCount; i++) {
+                createRupee();
+            }
+            
+            // Chaves
+            for (let i = 0; i < config.keyCount; i++) {
+                createKey();
+            }
+        }
+
+        // 💰 Cria uma rupee
+        function createRupee() {
+            const gameMap = document.getElementById('game-map');
+            
+            const rupee = {
+                x: Math.random() * (config.mapWidth - 50) + 25,
+                y: Math.random() * (config.mapHeight - 50) + 25,
+                collected: false
+            };
+            
+            gameState.rupees.push(rupee);
+            
+            const rupeeElement = document.createElement('div');
+            rupeeElement.className = 'rupee';
+            rupeeElement.style.left = `${rupee.x - 12}px`;
+            rupeeElement.style.top = `${rupee.y - 18}px`;
+            rupeeElement.dataset.index = gameState.rupees.length - 1;
+            gameMap.appendChild(rupeeElement);
+        }
+
+        // 🔑 Cria uma chave
+        function createKey() {
+            const gameMap = document.getElementById('game-map');
+            
+            const key = {
+                x: Math.random() * (config.mapWidth - 50) + 25,
+                y: Math.random() * (config.mapHeight - 50) + 25,
+                collected: false
+            };
+            
+            gameState.keysItems.push(key);
+            
+            const keyElement = document.createElement('div');
+            keyElement.className = 'key';
+            keyElement.style.left = `${key.x - 12}px`;
+            keyElement.style.top = `${key.y - 12}px`;
+            keyElement.dataset.index = gameState.keysItems.length - 1;
+            gameMap.appendChild(keyElement);
+        }
+
+        // 🧍 Posiciona o jogador
+        function positionPlayer() {
+            const playerElement = document.getElementById('player');
+            playerElement.style.left = `${config.viewportWidth/2 - 24}px`;
+            playerElement.style.top = `${config.viewportHeight/2 - 24}px`;
+        }
+
+        // 🎮 Configura listeners de eventos
+        function setupEventListeners() {
+            // Teclado
+            window.addEventListener('keydown', (e) => {
+                if (gameState.inDialog && e.key === 'Enter') {
+                    closeDialog();
+                    return;
+                }
+                
+                gameState.keys[e.key] = true;
+                
+                // Ataque com espaço ou 'z'
+                if ((e.key === ' ' || e.key === 'z') && !gameState.player.attacking) {
+                    attack();
+                }
+            });
+            
+            window.addEventListener('keyup', (e) => {
+                gameState.keys[e.key] = false;
+            });
+            
+            // Botão de diálogo
+            document.querySelector('.dialog-button').addEventListener('click', closeDialog);
+        }
+
+        // ⚔️ Ataque do jogador
+        function attack() {
+            const now = Date.now();
+            if (now - gameState.player.lastAttack < config.attackCooldown) return;
+            
+            gameState.player.attacking = true;
+            gameState.player.lastAttack = now;
+            
+            const playerElement = document.getElementById('player');
+            playerElement.classList.add('attacking');
+            
+            // Verifica acerto em inimigos
+            const swordRect = {
+                x: gameState.player.x + (gameState.player.direction.x * 40),
+                y: gameState.player.y + (gameState.player.direction.y * 40),
+                width: 30,
+                height: 30
+            };
+            
+            gameState.enemies.forEach((enemy, index) => {
+                if (checkCollision(swordRect, { 
+                    x: enemy.x, 
+                    y: enemy.y, 
+                    width: 48, 
+                    height: 48 
+                })) {
+                    removeEnemy(index);
+                    createParticles(enemy.x, enemy.y, 10, '#ff4500');
+                }
+            });
+            
+            setTimeout(() => {
+                playerElement.classList.remove('attacking');
+                gameState.player.attacking = false;
+            }, 300);
+        }
+
+        // 🏃‍♂️ Atualiza o jogador
+        function updatePlayer() {
+            const player = gameState.player;
+            let moveX = 0;
+            let moveY = 0;
+            
+            if (gameState.keys['ArrowUp'] || gameState.keys['w']) moveY = -1;
+            if (gameState.keys['ArrowDown'] || gameState.keys['s']) moveY = 1;
+            if (gameState.keys['ArrowLeft'] || gameState.keys['a']) moveX = -1;
+            if (gameState.keys['ArrowRight'] || gameState.keys['d']) moveX = 1;
+            
+            if (moveX !== 0 && moveY !== 0) {
+                moveX *= 0.7071;
+                moveY *= 0.7071;
+            }
+            
+            if (moveX !== 0 || moveY !== 0) {
+                player.direction = { x: moveX, y: moveY };
+                const sword = document.querySelector('.sword');
+                sword.style.left = moveX > 0 ? '48px' : '-30px';
+                sword.style.top = '50%';
+            }
+            
+            const newX = player.x + moveX * config.playerSpeed;
+            const newY = player.y + moveY * config.playerSpeed;
+            
+            const canMove = checkMovement(newX, newY, 48, 48);
+            
+            if (canMove.x) player.x = Math.max(24, Math.min(config.mapWidth - 72, newX));
+            if (canMove.y) player.y = Math.max(24, Math.min(config.mapHeight - 72, newY));
+        }
+
+        // 🧱 Verifica movimento válido
+        function checkMovement(x, y, width, height) {
+            const result = { x: true, y: true };
+            
+            gameState.obstacles.forEach(obstacle => {
+                if (
+                    x < obstacle.x + obstacle.width &&
+                    x + width > obstacle.x &&
+                    y < obstacle.y + obstacle.height &&
+                    y + height > obstacle.y
+                ) {
+                    if (obstacle.type === 'water') {
+                        takeDamage(1);
+                    }
+                    result.x = false;
+                    result.y = false;
+                }
+            });
+            
+            return result;
+        }
+
+        // 🎮 Loop principal do jogo
+        function gameLoop() {
+            updatePlayer();
+            updateEnemies();
+            updateCamera();
+            checkCollectibles();
+            gameState.gameTime += 16;
+            
+            requestAnimationFrame(gameLoop);
+        }
+
+        // 👾 Atualiza inimigos
+        function updateEnemies() {
+            const player = gameState.player;
+            const enemies = document.querySelectorAll('.enemy');
+            
+            gameState.enemies.forEach((enemy, index) => {
+                const dx = player.x - enemy.x;
+                const dy = player.y - enemy.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 300) {
+                    if (Math.random() < 0.02) {
+                        enemy.speedX = Math.random() * 2 - 1;
+                        enemy.speedY = Math.random() * 2 - 1;
+                    }
+                } else {
+                    enemy.speedX = dx / distance * 1.5;
+                    enemy.speedY = dy / distance * 1.5;
+                }
+                
+                const newX = enemy.x + enemy.speedX;
+                const newY = enemy.y + enemy.speedY;
+                
+                const canMove = checkMovement(newX, newY, 48, 48);
+                
+                if (canMove.x) enemy.x = newX;
+                if (canMove.y) enemy.y = newY;
+                
+                enemies[index].style.left = `${enemy.x - 24}px`;
+                enemies[index].style.top = `${enemy.y - 24}px`;
+                
+                if (distance < 40 && !gameState.player.attacking) {
+                    takeDamage(1);
+                }
+            });
+        }
+
+        // 📷 Atualiza a câmera
+        function updateCamera() {
+            const gameMap = document.getElementById('game-map');
+            const player = gameState.player;
+            
+            const mapX = -player.x + config.viewportWidth / 2;
+            const mapY = -player.y + config.viewportHeight / 2;
+            
+            const maxX = 0;
+            const minX = -(config.mapWidth - config.viewportWidth);
+            const maxY = 0;
+            const minY = -(config.mapHeight - config.viewportHeight);
+            
+            gameMap.style.left = `${Math.max(minX, Math.min(maxX, mapX))}px`;
+            gameMap.style.top = `${Math.max(minY, Math.min(maxY, mapY))}px`;
+        }
+
+        // 💰 Verifica colecionáveis
+        function checkCollectibles() {
+            const player = gameState.player;
+            
+            // Rupees
+            const rupeeElements = document.querySelectorAll('.rupee');
+            rupeeElements.forEach(rupeeElement => {
+                const index = parseInt(rupeeElement.dataset.index);
+                const rupee = gameState.rupees[index];
+                
+                if (!rupee.collected) {
+                    const dx = player.x - rupee.x;
+                    const dy = player.y - rupee.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 30) {
+                        collectRupee(index, rupeeElement);
+                    }
+                }
+            });
+            
+            // Chaves
+            const keyElements = document.querySelectorAll('.key');
+            keyElements.forEach(keyElement => {
+                const index = parseInt(keyElement.dataset.index);
+                const key = gameState.keysItems[index];
+                
+                if (!key.collected) {
+                    const dx = player.x - key.x;
+                    const dy = player.y - key.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 30) {
+                        collectKey(index, keyElement);
+                    }
+                }
+            });
+        }
+
+        // 💎 Coleta uma rupee
+        function collectRupee(index, element) {
+            gameState.rupees[index].collected = true;
+            gameState.player.rupees += 1;
+            
+            element.style.transition = 'all 0.5s';
+            element.style.transform = 'scale(2)';
+            element.style.opacity = '0';
+            createParticles(gameState.rupees[index].x, gameState.rupees[index].y, 5, '#0088ff');
+            
+            setTimeout(() => {
+                element.remove();
+                createRupee();
+            }, 500);
+            
+            updateHUD();
+        }
+
+        // 🔑 Coleta uma chave
+        function collectKey(index, element) {
+            gameState.keysItems[index].collected = true;
+            gameState.player.keys += 1;
+            
+            element.style.transition = 'all 0.5s';
+            element.style.transform = 'scale(2)';
+            element.style.opacity = '0';
+            createParticles(gameState.keysItems[index].x, gameState.keysItems[index].y, 5, '#ffff00');
+            
+            setTimeout(() => {
+                element.remove();
+            }, 500);
+            
+            updateHUD();
+            
+            if (gameState.player.keys === 1) {
+                showDialog("Você encontrou uma chave mágica! Talvez ela possa abrir algum baú ou porta especial...");
+            }
+        }
+
+        // 🩹 Dano ao jogador
+        function takeDamage(amount) {
+            const now = Date.now();
+            if (now - gameState.player.lastAttack < 1000) return;
+            
+            gameState.player.health -= amount;
+            
+            const damageEffect = document.createElement('div');
+            damageEffect.className = 'damage-effect';
+            document.getElementById('game-container').appendChild(damageEffect);
+            
+            damageEffect.style.animation = 'damageFlash 0.5s';
+            setTimeout(() => damageEffect.remove(), 500);
+            
+            updateHUD();
+            
+            if (gameState.player.health <= 0) {
+                gameOver();
+            }
+        }
+
+        // ☠️ Game over
+        function gameOver() {
+            showDialog("Você foi derrotado... Mas a lenda nunca termina! Tente novamente.");
+            setTimeout(() => {
+                location.reload();
+            }, 3000);
+        }
+
+        // 🎮 Atualiza o HUD
+        function updateHUD() {
+            const heartsContainer = document.querySelector('.hearts');
+            heartsContainer.innerHTML = '';
+            
+            for (let i = 0; i < gameState.player.maxHealth; i++) {
+                const heart = document.createElement('span');
+                heart.className = 'heart';
+                if (i >= gameState.player.health) {
+                    heart.style.opacity = '0.3';
+                }
+                heartsContainer.appendChild(heart);
+            }
+            
+            document.querySelector('.rupees').innerHTML = `${gameState.player.rupees} <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyLDIwQTgsOCAwIDAsMSA0LDEyQTgsOCAwIDAsMSAxMiw0QTgsOCAwIDAsMSAyMCwxMkE4LDggMCAwLDEgMTIsMjBNMTIsMkExMCwxMCAwIDAsMCAyLDEyQTEwLDEwIDAgMCwwIDEyLDIyQTEwLDEwIDAgMCwwIDIyLDEyQTEwLTEwIDAgMCwwIDEyLDIiIGZpbGw9IiMwMDg4ZmYiLz48L3N2Zz4=" alt="Rupee">`;
+            
+            document.querySelector('.keys').innerHTML = `${gameState.player.keys} <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTcsMTdBMiwyIDAgMCwwIDksMTlIMjlBMiwyIDAgMCwwIDIxLDE3VjEzSDlBMiwyIDAgMCwwIDcsMTFWOUgxOVY3SDlBMiwyIDAgMCwwIDcsOVY3QTIsMiAwIDAsMCA5LDVIMjlBMiwyIDAgMCwwIDIxLDdWMTdNOSw5SDIxVjExSDlWOU0xNSwxM1YxNUgxN1YxM0gxNVoiIGZpbGw9IiNmZmZmMDAiLz48L3N2Zz4=" alt="Key">`;
+        }
+
+        // 💬 Mostra diálogo
+        function showDialog(text) {
+            gameState.inDialog = true;
+            const dialogBox = document.getElementById('dialog-box');
+            dialogBox.querySelector('.dialog-content').textContent = text;
+            dialogBox.style.display = 'block';
+            setTimeout(() => dialogBox.style.opacity = '1', 10);
+        }
+
+        // ❌ Fecha diálogo
+        function closeDialog() {
+            gameState.inDialog = false;
+            const dialogBox = document.getElementById('dialog-box');
+            dialogBox.style.opacity = '0';
+            setTimeout(() => dialogBox.style.display = 'none', 500);
+        }
+
+        // 👾 Cria um inimigo
+        function createEnemy() {
+            const gameMap = document.getElementById('game-map');
+            const player = gameState.player;
+            
+            let x, y;
+            do {
+                x = Math.random() * (config.mapWidth - 100) + 50;
+                y = Math.random() * (config.mapHeight - 100) + 50;
+            } while (Math.abs(x - player.x) < 200 && Math.abs(y - player.y) < 200);
+            
+            const enemy = {
+                x,
+                y,
+                speedX: Math.random() * 2 - 1,
+                speedY: Math.random() * 2 - 1,
+                health: 2
+            };
+            
+            gameState.enemies.push(enemy);
+            
+            const enemyElement = document.createElement('div');
+            enemyElement.className = 'enemy';
+            enemyElement.style.left = `${enemy.x - 24}px`;
+            enemyElement.style.top = `${enemy.y - 24}px`;
+            gameMap.appendChild(enemyElement);
+        }
+
+        // ☠️ Remove um inimigo
+        function removeEnemy(index) {
+            const enemyElement = document.querySelectorAll('.enemy')[index];
+            enemyElement.style.transition = 'all 0.5s';
+            enemyElement.style.transform = 'scale(0)';
+            enemyElement.style.opacity = '0';
+            
+            setTimeout(() => {
+                enemyElement.remove();
+                gameState.enemies.splice(index, 1);
+            }, 500);
+        }
+
+        // ✨ Cria partículas de efeito
+        function createParticles(x, y, count, color) {
+            const particlesContainer = document.getElementById('particles');
+            
+            for (let i = 0; i < count; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = `${x}px`;
+                particle.style.top = `${y}px`;
+                particle.style.backgroundColor = color;
+                particle.style.width = `${5 + Math.random() * 10}px`;
+                particle.style.height = particle.style.width;
+                particle.style.borderRadius = '50%';
+                particle.style.position = 'absolute';
+                particle.style.opacity = '0.8';
+                
+                const angle = Math.random() * Math.PI * 2;
+                const speed = 1 + Math.random() * 3;
+                const lifetime = 500 + Math.random() * 1000;
+                
+                particlesContainer.appendChild(particle);
+                
+                const startTime = Date.now();
+                
+                function updateParticle() {
+                    const elapsed = Date.now() - startTime;
+                    const progress = elapsed / lifetime;
+                    
+                    if (progress >= 1) {
+                        particle.remove();
+                        return;
+                    }
+                    
+                    particle.style.transform = `translate(${Math.cos(angle) * speed * elapsed/10}px, ${Math.sin(angle) * speed * elapsed/10}px)`;
+                    particle.style.opacity = `${0.8 * (1 - progress)}`;
+                    
+                    requestAnimationFrame(updateParticle);
+                }
+                
+                updateParticle();
+            }
+        }
+
+        // 🛠️ Utilitários
+        function checkCollision(rect1, rect2) {
+            return (
+                rect1.x < rect2.x + rect2.width &&
+                rect1.x + rect1.width > rect2.x &&
+                rect1.y < rect2.y + rect2.height &&
+                rect1.y + rect1.height > rect2.y
+            );
+        }
+
+        // ⚡ Inicia quando o DOM estiver pronto
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => initGame(), 100);
+        });
+    </script>
 </body>
 </html>
