@@ -15,6 +15,7 @@
             --key-color: #ffff00;
             --heart-color: #ff4444;
             --shadow-color: rgba(0, 0, 0, 0.6);
+            --boss-color: #8b0000;
         }
 
         * {
@@ -193,9 +194,27 @@
             will-change: transform, opacity;
         }
 
+        .boss {
+            position: absolute;
+            width: 72px;
+            height: 72px;
+            background-color: var(--boss-color);
+            border-radius: 50%;
+            z-index: 15;
+            animation: bossPulse 1.5s infinite alternate;
+            box-shadow: 0 0 25px rgba(139, 0, 0, 0.8);
+            will-change: transform, opacity;
+        }
+
         @keyframes enemyPulse {
             0% { transform: scale(1); }
             50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes bossPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
             100% { transform: scale(1); }
         }
 
@@ -264,6 +283,38 @@
             will-change: transform, opacity;
         }
 
+        .chest {
+            position: absolute;
+            width: 48px;
+            height: 36px;
+            background-color: #b8860b;
+            border: 4px solid #8b4513;
+            border-radius: 5px;
+            z-index: 15;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .chest::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 8px;
+            background-color: #daa520;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .chest.locked::after {
+            content: '🔒';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 20px;
+        }
+
         @keyframes float {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-10px); }
@@ -277,6 +328,11 @@
         @keyframes glow-gold {
             0% { box-shadow: 0 0 10px var(--key-color); }
             100% { box-shadow: 0 0 20px var(--key-color); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
 
         .heart {
@@ -392,6 +448,46 @@
             z-index: 5;
         }
 
+        #pause-menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 50;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #pause-menu h1 {
+            font-size: 48px;
+            margin-bottom: 30px;
+            color: gold;
+        }
+
+        .menu-button {
+            background-color: #4169e1;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'MedievalSharp', cursive;
+            font-size: 20px;
+            margin: 10px;
+            transition: all 0.3s;
+            width: 200px;
+            text-align: center;
+        }
+
+        .menu-button:hover {
+            background-color: #5a7be1;
+            transform: scale(1.05);
+        }
+
         .hidden {
             display: none !important;
         }
@@ -473,10 +569,40 @@
             <button class="dialog-button">Continuar</button>
         </div>
         <div id="particles"></div>
+        <div id="pause-menu">
+            <h1>Jogo Pausado</h1>
+            <button class="menu-button" id="resume-button">Continuar</button>
+            <button class="menu-button" id="restart-button">Reiniciar</button>
+            <button class="menu-button" id="quit-button">Sair</button>
+        </div>
     </div>
     
-    <audio id="bg-music" preload="auto">
+    <audio id="bg-music" preload="auto" loop>
         <source src="https://assets.codepen.io/21542/zelda-like-music-short.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="sword-sound" preload="auto">
+        <source src="https://assets.codepen.io/21542/sword-swing.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="rupee-sound" preload="auto">
+        <source src="https://assets.codepen.io/21542/rupee-collect.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="damage-sound" preload="auto">
+        <source src="https://assets.codepen.io/21542/damage-sound.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="enemy-death-sound" preload="auto">
+        <source src="https://assets.codepen.io/21542/enemy-death.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="key-sound" preload="auto">
+        <source src="https://assets.codepen.io/21542/key-collect.mp3" type="audio/mpeg">
+    </audio>
+    
+    <audio id="chest-sound" preload="auto">
+        <source src="https://assets.codepen.io/21542/chest-open.mp3" type="audio/mpeg">
     </audio>
     
     <script>
@@ -484,15 +610,20 @@
         const config = {
             playerSpeed: 6,
             enemyCount: 8,
+            bossCount: 2,
             rupeeCount: 15,
             keyCount: 3,
+            chestCount: 3,
             mapWidth: 2400,
             mapHeight: 1800,
             viewportWidth: 800,
             viewportHeight: 600,
             attackCooldown: 500,
             enemySpawnRate: 10000,
-            musicVolume: 0.3
+            musicVolume: 0.3,
+            soundVolume: 0.5,
+            bossHealth: 5,
+            enemyHealth: 2
         };
 
         // 🏰 Estado do Jogo
@@ -506,80 +637,120 @@
                 keys: 0,
                 attacking: false,
                 lastAttack: 0,
-                direction: { x: 0, y: 1 }
+                direction: { x: 0, y: 1 },
+                hasSword: true,
+                hasShield: false
             },
             keys: {},
             enemies: [],
+            bosses: [],
             rupees: [],
             keysItems: [],
+            chests: [],
             obstacles: [],
             gameTime: 0,
             currentDialog: null,
-            inDialog: false
+            inDialog: false,
+            isPaused: false,
+            gameStarted: false,
+            savedData: null
         };
 
-        // 🎵 Efeitos Sonoros
-        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-        const sounds = {
-            sword: null,
-            rupee: null,
-            damage: null,
-            enemyDeath: null
+        // 🎵 Elementos de Áudio
+        const audioElements = {
+            bgMusic: document.getElementById('bg-music'),
+            swordSound: document.getElementById('sword-sound'),
+            rupeeSound: document.getElementById('rupee-sound'),
+            damageSound: document.getElementById('damage-sound'),
+            enemyDeathSound: document.getElementById('enemy-death-sound'),
+            keySound: document.getElementById('key-sound'),
+            chestSound: document.getElementById('chest-sound')
         };
+
+        // 🔄 Configura volume inicial
+        function setupAudio() {
+            audioElements.bgMusic.volume = config.musicVolume;
+            audioElements.swordSound.volume = config.soundVolume;
+            audioElements.rupeeSound.volume = config.soundVolume;
+            audioElements.damageSound.volume = config.soundVolume;
+            audioElements.enemyDeathSound.volume = config.soundVolume;
+            audioElements.keySound.volume = config.soundVolume;
+            audioElements.chestSound.volume = config.soundVolume;
+        }
+
+        // 🔊 Toca um som
+        function playSound(soundName) {
+            if (audioElements[soundName]) {
+                audioElements[soundName].currentTime = 0;
+                audioElements[soundName].play().catch(e => console.log("Erro ao tocar som:", e));
+            }
+        }
 
         // 🚀 Sistema de Carregamento Turbo
-        // 🚀 Sistema de Carregamento Turbo - VERSÃO CORRIGIDA
-async function initGame() {
-    updateLoadingProgress(0, "Inicializando...");
-    
-    try {
-        // Carrega assets essenciais primeiro
-        await loadEssentialAssets();
-        
-        // Atualiza progresso para 70% após carregar assets
-        updateLoadingProgress(70, "Preparando mundo...");
-        
-        // Simula um tempo mínimo de carregamento (para efeito visual)
-        await new Promise(resolve => setTimeout(resolve, 800));
-        
-        // Completa o carregamento
-        updateLoadingProgress(100, "Pronto para a aventura!");
-        
-        // Espera um pouco para mostrar 100%
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        hideLoadingScreen();
-        startGame();
-    } catch (error) {
-        showErrorScreen();
-    }
-}
+        async function initGame() {
+            updateLoadingProgress(0, "Inicializando...");
+            
+            try {
+                // Verifica dados salvos
+                checkSavedData();
+                
+                // Carrega assets essenciais primeiro
+                await loadEssentialAssets();
+                updateLoadingProgress(70, "Preparando mundo...");
+                
+                // Configura áudio
+                setupAudio();
+                
+                // Simula um tempo mínimo de carregamento (para efeito visual)
+                await new Promise(resolve => setTimeout(resolve, 800));
+                
+                // Completa o carregamento
+                updateLoadingProgress(100, "Pronto para a aventura!");
+                
+                // Espera um pouco para mostrar 100%
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                hideLoadingScreen();
+                startGame();
+            } catch (error) {
+                console.error("Erro ao inicializar o jogo:", error);
+                showErrorScreen();
+            }
+        }
 
-// 📦 Carrega assets essenciais - VERSÃO SIMPLIFICADA
-async function loadEssentialAssets() {
-    return new Promise((resolve) => {
-        const bgMusic = document.getElementById('bg-music');
-        bgMusic.oncanplaythrough = resolve;
-        bgMusic.load();
-    });
-}
+        // 📦 Carrega assets essenciais
+        async function loadEssentialAssets() {
+            return new Promise((resolve) => {
+                const bgMusic = document.getElementById('bg-music');
+                bgMusic.oncanplaythrough = resolve;
+                bgMusic.load();
+            });
+        }
 
-// 📊 Atualiza barra de progresso - VERSÃO CORRIGIDA (sem loop)
-function updateLoadingProgress(percent, message) {
-    document.querySelector('.progress').style.width = `${percent}%`;
-    document.querySelector('#loading-screen h1').textContent = message;
-}
+        // 💾 Verifica dados salvos
+        function checkSavedData() {
+            const savedData = localStorage.getItem('zeldaWebSave');
+            if (savedData) {
+                gameState.savedData = JSON.parse(savedData);
+            }
+        }
 
-// 🎉 Esconde tela de carregamento - VERSÃO CORRIGIDA
-function hideLoadingScreen() {
-    const loadingScreen = document.getElementById('loading-screen');
-    loadingScreen.style.opacity = '0';
-    
-    setTimeout(() => {
-        loadingScreen.classList.add('hidden');
-        document.getElementById('game-container').classList.remove('hidden');
-    }, 500);
-}
+        // 📊 Atualiza barra de progresso
+        function updateLoadingProgress(percent, message) {
+            document.querySelector('.progress').style.width = `${percent}%`;
+            document.querySelector('#loading-screen h1').textContent = message;
+        }
+
+        // 🎉 Esconde tela de carregamento
+        function hideLoadingScreen() {
+            const loadingScreen = document.getElementById('loading-screen');
+            loadingScreen.style.opacity = '0';
+            
+            setTimeout(() => {
+                loadingScreen.classList.add('hidden');
+                document.getElementById('game-container').classList.remove('hidden');
+            }, 500);
+        }
 
         // ❌ Mostra erro se algo falhar
         function showErrorScreen() {
@@ -592,6 +763,56 @@ function hideLoadingScreen() {
             `;
         }
 
+        // 🎮 Inicia o jogo
+        function startGame() {
+            // Aplica dados salvos se existirem
+            if (gameState.savedData) {
+                applySavedData();
+            }
+            
+            generateWorld();
+            setupEventListeners();
+            startEnemySpawner();
+            startBossSpawner();
+            
+            // Inicia música
+            audioElements.bgMusic.play().catch(e => console.log("Autoplay bloqueado:", e));
+            
+            // Mostra mensagem inicial
+            showDialog("Bem-vindo a Hyrule! Use as teclas WASD ou setas para mover. Espaço ou Z para atacar. P para pausar.");
+            
+            gameState.gameStarted = true;
+            gameLoop();
+        }
+
+        // 💾 Aplica dados salvos
+        function applySavedData() {
+            const data = gameState.savedData;
+            gameState.player.rupees = data.rupees || 0;
+            gameState.player.keys = data.keys || 0;
+            gameState.player.health = data.health || 3;
+            gameState.player.maxHealth = data.maxHealth || 3;
+            gameState.player.hasSword = data.hasSword !== false;
+            gameState.player.hasShield = data.hasShield || false;
+            
+            updateHUD();
+        }
+
+        // 💾 Salva o progresso
+        function saveGame() {
+            const saveData = {
+                rupees: gameState.player.rupees,
+                keys: gameState.player.keys,
+                health: gameState.player.health,
+                maxHealth: gameState.player.maxHealth,
+                hasSword: gameState.player.hasSword,
+                hasShield: gameState.player.hasShield,
+                timestamp: Date.now()
+            };
+            
+            localStorage.setItem('zeldaWebSave', JSON.stringify(saveData));
+        }
+
         // 🌍 Gera o mundo do jogo
         function generateWorld() {
             const gameMap = document.getElementById('game-map');
@@ -599,6 +820,7 @@ function hideLoadingScreen() {
             
             createObstacles();
             createCollectibles();
+            createChests();
             positionPlayer();
         }
 
@@ -661,6 +883,29 @@ function hideLoadingScreen() {
             }
         }
 
+        // 🏦 Cria baús no mundo
+        function createChests() {
+            const gameMap = document.getElementById('game-map');
+            
+            for (let i = 0; i < config.chestCount; i++) {
+                const chest = {
+                    x: Math.random() * (config.mapWidth - 100) + 50,
+                    y: Math.random() * (config.mapHeight - 100) + 50,
+                    locked: true,
+                    opened: false
+                };
+                
+                gameState.chests.push(chest);
+                
+                const chestElement = document.createElement('div');
+                chestElement.className = 'chest locked';
+                chestElement.style.left = `${chest.x - 24}px`;
+                chestElement.style.top = `${chest.y - 18}px`;
+                chestElement.dataset.index = gameState.chests.length - 1;
+                gameMap.appendChild(chestElement);
+            }
+        }
+
         // 💰 Cria uma rupee
         function createRupee() {
             const gameMap = document.getElementById('game-map');
@@ -717,10 +962,15 @@ function hideLoadingScreen() {
                     return;
                 }
                 
+                if (e.key === 'p' || e.key === 'P') {
+                    togglePause();
+                    return;
+                }
+                
                 gameState.keys[e.key] = true;
                 
                 // Ataque com espaço ou 'z'
-                if ((e.key === ' ' || e.key === 'z') && !gameState.player.attacking) {
+                if ((e.key === ' ' || e.key === 'z') && !gameState.player.attacking && gameState.player.hasSword) {
                     attack();
                 }
             });
@@ -731,6 +981,33 @@ function hideLoadingScreen() {
             
             // Botão de diálogo
             document.querySelector('.dialog-button').addEventListener('click', closeDialog);
+            
+            // Botões do menu de pausa
+            document.getElementById('resume-button').addEventListener('click', togglePause);
+            document.getElementById('restart-button').addEventListener('click', restartGame);
+            document.getElementById('quit-button').addEventListener('click', () => {
+                saveGame();
+                window.location.reload();
+            });
+        }
+
+        // ⏸️ Pausa/despausa o jogo
+        function togglePause() {
+            gameState.isPaused = !gameState.isPaused;
+            
+            if (gameState.isPaused) {
+                document.getElementById('pause-menu').style.display = 'flex';
+                audioElements.bgMusic.pause();
+            } else {
+                document.getElementById('pause-menu').style.display = 'none';
+                audioElements.bgMusic.play().catch(e => console.log("Autoplay bloqueado:", e));
+            }
+        }
+
+        // 🔄 Reinicia o jogo
+        function restartGame() {
+            localStorage.removeItem('zeldaWebSave');
+            window.location.reload();
         }
 
         // ⚔️ Ataque do jogador
@@ -744,6 +1021,8 @@ function hideLoadingScreen() {
             const playerElement = document.getElementById('player');
             playerElement.classList.add('attacking');
             
+            playSound('swordSound');
+            
             // Verifica acerto em inimigos
             const swordRect = {
                 x: gameState.player.x + (gameState.player.direction.x * 40),
@@ -752,6 +1031,7 @@ function hideLoadingScreen() {
                 height: 30
             };
             
+            // Inimigos normais
             gameState.enemies.forEach((enemy, index) => {
                 if (checkCollision(swordRect, { 
                     x: enemy.x, 
@@ -759,8 +1039,33 @@ function hideLoadingScreen() {
                     width: 48, 
                     height: 48 
                 })) {
-                    removeEnemy(index);
-                    createParticles(enemy.x, enemy.y, 10, '#ff4500');
+                    enemy.health--;
+                    if (enemy.health <= 0) {
+                        removeEnemy(index);
+                        createParticles(enemy.x, enemy.y, 10, '#ff4500');
+                        playSound('enemyDeathSound');
+                    }
+                }
+            });
+            
+            // Chefes
+            gameState.bosses.forEach((boss, index) => {
+                if (checkCollision(swordRect, { 
+                    x: boss.x, 
+                    y: boss.y, 
+                    width: 72, 
+                    height: 72 
+                })) {
+                    boss.health--;
+                    if (boss.health <= 0) {
+                        removeBoss(index);
+                        createParticles(boss.x, boss.y, 20, '#ff0000');
+                        playSound('enemyDeathSound');
+                        showDialog("Você derrotou um poderoso chefe! Encontrou um coração extra.");
+                        gameState.player.maxHealth = Math.min(5, gameState.player.maxHealth + 1);
+                        gameState.player.health = gameState.player.maxHealth;
+                        updateHUD();
+                    }
                 }
             });
             
@@ -806,6 +1111,11 @@ function hideLoadingScreen() {
         function checkMovement(x, y, width, height) {
             const result = { x: true, y: true };
             
+            // Verifica limites do mapa
+            if (x < 24 || x + width > config.mapWidth - 24) result.x = false;
+            if (y < 24 || y + height > config.mapHeight - 24) result.y = false;
+            
+            // Verifica obstáculos
             gameState.obstacles.forEach(obstacle => {
                 if (
                     x < obstacle.x + obstacle.width &&
@@ -824,12 +1134,43 @@ function hideLoadingScreen() {
             return result;
         }
 
+        // 👾 Inicia spawn de inimigos
+        function startEnemySpawner() {
+            // Spawn inicial de inimigos
+            for (let i = 0; i < config.enemyCount; i++) {
+                createEnemy();
+            }
+            
+            // Spawn contínuo
+            setInterval(() => {
+                if (!gameState.isPaused && gameState.gameStarted && 
+                    gameState.enemies.length < config.enemyCount * 1.5) {
+                    createEnemy();
+                }
+            }, config.enemySpawnRate);
+        }
+
+        // 👑 Inicia spawn de chefes
+        function startBossSpawner() {
+            // Spawn inicial de chefes
+            for (let i = 0; i < config.bossCount; i++) {
+                createBoss();
+            }
+        }
+
         // 🎮 Loop principal do jogo
         function gameLoop() {
+            if (gameState.isPaused || !gameState.gameStarted) {
+                requestAnimationFrame(gameLoop);
+                return;
+            }
+            
             updatePlayer();
             updateEnemies();
+            updateBosses();
             updateCamera();
             checkCollectibles();
+            checkChests();
             gameState.gameTime += 16;
             
             requestAnimationFrame(gameLoop);
@@ -868,6 +1209,43 @@ function hideLoadingScreen() {
                 
                 if (distance < 40 && !gameState.player.attacking) {
                     takeDamage(1);
+                }
+            });
+        }
+
+        // 👑 Atualiza chefes
+        function updateBosses() {
+            const player = gameState.player;
+            const bosses = document.querySelectorAll('.boss');
+            
+            gameState.bosses.forEach((boss, index) => {
+                const dx = player.x - boss.x;
+                const dy = player.y - boss.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance > 500) {
+                    if (Math.random() < 0.01) {
+                        boss.speedX = Math.random() * 2 - 1;
+                        boss.speedY = Math.random() * 2 - 1;
+                    }
+                } else {
+                    boss.speedX = dx / distance * 1.2;
+                    boss.speedY = dy / distance * 1.2;
+                }
+                
+                const newX = boss.x + boss.speedX;
+                const newY = boss.y + boss.speedY;
+                
+                const canMove = checkMovement(newX, newY, 72, 72);
+                
+                if (canMove.x) boss.x = newX;
+                if (canMove.y) boss.y = newY;
+                
+                bosses[index].style.left = `${boss.x - 36}px`;
+                bosses[index].style.top = `${boss.y - 36}px`;
+                
+                if (distance < 50 && !gameState.player.attacking) {
+                    takeDamage(2);
                 }
             });
         }
@@ -928,6 +1306,31 @@ function hideLoadingScreen() {
             });
         }
 
+        // 🏦 Verifica baús
+        function checkChests() {
+            const player = gameState.player;
+            const chestElements = document.querySelectorAll('.chest');
+            
+            chestElements.forEach(chestElement => {
+                const index = parseInt(chestElement.dataset.index);
+                const chest = gameState.chests[index];
+                
+                if (!chest.opened) {
+                    const dx = player.x - chest.x;
+                    const dy = player.y - chest.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < 40) {
+                        if (chest.locked && player.keys > 0) {
+                            openChest(index, chestElement);
+                        } else if (!chest.locked) {
+                            openChest(index, chestElement);
+                        }
+                    }
+                }
+            });
+        }
+
         // 💎 Coleta uma rupee
         function collectRupee(index, element) {
             gameState.rupees[index].collected = true;
@@ -937,6 +1340,8 @@ function hideLoadingScreen() {
             element.style.transform = 'scale(2)';
             element.style.opacity = '0';
             createParticles(gameState.rupees[index].x, gameState.rupees[index].y, 5, '#0088ff');
+            
+            playSound('rupeeSound');
             
             setTimeout(() => {
                 element.remove();
@@ -956,6 +1361,8 @@ function hideLoadingScreen() {
             element.style.opacity = '0';
             createParticles(gameState.keysItems[index].x, gameState.keysItems[index].y, 5, '#ffff00');
             
+            playSound('keySound');
+            
             setTimeout(() => {
                 element.remove();
             }, 500);
@@ -967,10 +1374,70 @@ function hideLoadingScreen() {
             }
         }
 
+        // 🏦 Abre um baú
+        function openChest(index, element) {
+            const chest = gameState.chests[index];
+            
+            if (chest.locked && gameState.player.keys > 0) {
+                gameState.player.keys -= 1;
+                chest.locked = false;
+                element.classList.remove('locked');
+                updateHUD();
+            }
+            
+            if (!chest.opened) {
+                chest.opened = true;
+                element.style.transition = 'all 0.5s';
+                element.style.transform = 'scale(1.2)';
+                
+                playSound('chestSound');
+                createParticles(chest.x, chest.y, 15, '#daa520');
+                
+                // Recompensa aleatória
+                const reward = Math.random();
+                if (reward < 0.3) {
+                    // Coração
+                    if (gameState.player.health < gameState.player.maxHealth) {
+                        gameState.player.health = Math.min(gameState.player.maxHealth, gameState.player.health + 1);
+                        showDialog("Você encontrou um coração no baú! Vida restaurada.");
+                    } else {
+                        gameState.player.rupees += 10;
+                        showDialog("Você encontrou 10 rupees no baú!");
+                    }
+                } else if (reward < 0.6) {
+                    // Rupees
+                    const rupees = 5 + Math.floor(Math.random() * 10);
+                    gameState.player.rupees += rupees;
+                    showDialog(`Você encontrou ${rupees} rupees no baú!`);
+                } else {
+                    // Escudo
+                    if (!gameState.player.hasShield) {
+                        gameState.player.hasShield = true;
+                        showDialog("Você encontrou um escudo no baú! Agora você tem 50% de chance de bloquear ataques.");
+                    } else {
+                        gameState.player.rupees += 15;
+                        showDialog("Você encontrou 15 rupees no baú!");
+                    }
+                }
+                
+                updateHUD();
+                
+                setTimeout(() => {
+                    element.style.transform = 'scale(1)';
+                }, 500);
+            }
+        }
+
         // 🩹 Dano ao jogador
         function takeDamage(amount) {
             const now = Date.now();
             if (now - gameState.player.lastAttack < 1000) return;
+            
+            // Chance de bloquear com escudo
+            if (gameState.player.hasShield && Math.random() < 0.5) {
+                createParticles(gameState.player.x, gameState.player.y, 10, '#4169e1');
+                return;
+            }
             
             gameState.player.health -= amount;
             
@@ -981,6 +1448,7 @@ function hideLoadingScreen() {
             damageEffect.style.animation = 'damageFlash 0.5s';
             setTimeout(() => damageEffect.remove(), 500);
             
+            playSound('damageSound');
             updateHUD();
             
             if (gameState.player.health <= 0) {
@@ -992,7 +1460,7 @@ function hideLoadingScreen() {
         function gameOver() {
             showDialog("Você foi derrotado... Mas a lenda nunca termina! Tente novamente.");
             setTimeout(() => {
-                location.reload();
+                restartGame();
             }, 3000);
         }
 
@@ -1013,6 +1481,9 @@ function hideLoadingScreen() {
             document.querySelector('.rupees').innerHTML = `${gameState.player.rupees} <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyLDIwQTgsOCAwIDAsMSA0LDEyQTgsOCAwIDAsMSAxMiw0QTgsOCAwIDAsMSAyMCwxMkE4LDggMCAwLDEgMTIsMjBNMTIsMkExMCwxMCAwIDAsMCAyLDEyQTEwLDEwIDAgMCwwIDEyLDIyQTEwLDEwIDAgMCwwIDIyLDEyQTEwLTEwIDAgMCwwIDEyLDIiIGZpbGw9IiMwMDg4ZmYiLz48L3N2Zz4=" alt="Rupee">`;
             
             document.querySelector('.keys').innerHTML = `${gameState.player.keys} <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTcsMTdBMiwyIDAgMCwwIDksMTlIMjlBMiwyIDAgMCwwIDIxLDE3VjEzSDlBMiwyIDAgMCwwIDcsMTFWOUgxOVY3SDlBMiwyIDAgMCwwIDcsOVY3QTIsMiAwIDAsMCA5LDVIMjlBMiwyIDAgMCwwIDIxLDdWMTdNOSw5SDIxVjExSDlWOU0xNSwxM1YxNUgxN1YxM0gxNVoiIGZpbGw9IiNmZmZmMDAiLz48L3N2Zz4=" alt="Key">`;
+            
+            // Salva o jogo automaticamente quando o HUD é atualizado
+            saveGame();
         }
 
         // 💬 Mostra diálogo
@@ -1048,7 +1519,7 @@ function hideLoadingScreen() {
                 y,
                 speedX: Math.random() * 2 - 1,
                 speedY: Math.random() * 2 - 1,
-                health: 2
+                health: config.enemyHealth
             };
             
             gameState.enemies.push(enemy);
@@ -1058,6 +1529,34 @@ function hideLoadingScreen() {
             enemyElement.style.left = `${enemy.x - 24}px`;
             enemyElement.style.top = `${enemy.y - 24}px`;
             gameMap.appendChild(enemyElement);
+        }
+
+        // 👑 Cria um chefe
+        function createBoss() {
+            const gameMap = document.getElementById('game-map');
+            const player = gameState.player;
+            
+            let x, y;
+            do {
+                x = Math.random() * (config.mapWidth - 200) + 100;
+                y = Math.random() * (config.mapHeight - 200) + 100;
+            } while (Math.abs(x - player.x) < 300 && Math.abs(y - player.y) < 300);
+            
+            const boss = {
+                x,
+                y,
+                speedX: Math.random() * 2 - 1,
+                speedY: Math.random() * 2 - 1,
+                health: config.bossHealth
+            };
+            
+            gameState.bosses.push(boss);
+            
+            const bossElement = document.createElement('div');
+            bossElement.className = 'boss';
+            bossElement.style.left = `${boss.x - 36}px`;
+            bossElement.style.top = `${boss.y - 36}px`;
+            gameMap.appendChild(bossElement);
         }
 
         // ☠️ Remove um inimigo
@@ -1070,6 +1569,19 @@ function hideLoadingScreen() {
             setTimeout(() => {
                 enemyElement.remove();
                 gameState.enemies.splice(index, 1);
+            }, 500);
+        }
+
+        // 👑 Remove um chefe
+        function removeBoss(index) {
+            const bossElement = document.querySelectorAll('.boss')[index];
+            bossElement.style.transition = 'all 0.5s';
+            bossElement.style.transform = 'scale(0)';
+            bossElement.style.opacity = '0';
+            
+            setTimeout(() => {
+                bossElement.remove();
+                gameState.bosses.splice(index, 1);
             }, 500);
         }
 
