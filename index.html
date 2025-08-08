@@ -528,98 +528,58 @@
         };
 
         // 🚀 Sistema de Carregamento Turbo
-        async function initGame() {
-            updateLoadingProgress(0, "Inicializando...");
-            
-            try {
-                await Promise.all([
-                    loadEssentialAssets(),
-                    simulateMinimumLoadTime()
-                ]);
-                
-                hideLoadingScreen();
-                startGame();
-            } catch (error) {
-                showErrorScreen();
-            }
-        }
+        // 🚀 Sistema de Carregamento Turbo - VERSÃO CORRIGIDA
+async function initGame() {
+    updateLoadingProgress(0, "Inicializando...");
+    
+    try {
+        // Carrega assets essenciais primeiro
+        await loadEssentialAssets();
+        
+        // Atualiza progresso para 70% após carregar assets
+        updateLoadingProgress(70, "Preparando mundo...");
+        
+        // Simula um tempo mínimo de carregamento (para efeito visual)
+        await new Promise(resolve => setTimeout(resolve, 800));
+        
+        // Completa o carregamento
+        updateLoadingProgress(100, "Pronto para a aventura!");
+        
+        // Espera um pouco para mostrar 100%
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        hideLoadingScreen();
+        startGame();
+    } catch (error) {
+        showErrorScreen();
+    }
+}
 
-        // 📦 Carrega assets essenciais
-        async function loadEssentialAssets() {
-            updateLoadingProgress(10, "Carregando recursos...");
-            
-            // Pré-carrega apenas o necessário para iniciar
-            const assets = [
-                { type: 'audio', id: 'bg-music' }
-            ];
-            
-            await Promise.all(assets.map(asset => {
-                return new Promise((resolve) => {
-                    if (asset.type === 'audio') {
-                        const audio = document.getElementById(asset.id);
-                        audio.oncanplaythrough = resolve;
-                        audio.load();
-                    }
-                });
-            }));
-            
-            updateLoadingProgress(70, "Preparando mundo...");
-        }
+// 📦 Carrega assets essenciais - VERSÃO SIMPLIFICADA
+async function loadEssentialAssets() {
+    return new Promise((resolve) => {
+        const bgMusic = document.getElementById('bg-music');
+        bgMusic.oncanplaythrough = resolve;
+        bgMusic.load();
+    });
+}
 
-        // ⏳ Garante tempo mínimo de carregamento (para efeito)
-        function simulateMinimumLoadTime() {
-            return new Promise(resolve => {
-                setTimeout(resolve, 1500);
-            });
-        }
+// 📊 Atualiza barra de progresso - VERSÃO CORRIGIDA (sem loop)
+function updateLoadingProgress(percent, message) {
+    document.querySelector('.progress').style.width = `${percent}%`;
+    document.querySelector('#loading-screen h1').textContent = message;
+}
 
-        // 🎮 Inicia o jogo após carregamento
-        function startGame() {
-            const bgMusic = document.getElementById('bg-music');
-            bgMusic.volume = 0.3;
-            bgMusic.play().catch(e => console.log("Autoplay bloqueado:", e));
-            
-            generateWorld();
-            updateHUD();
-            setupEventListeners();
-            gameLoop();
-        }
-
-        // 📊 Atualiza barra de progresso
-        function updateLoadingProgress(percent, message) {
-            document.querySelector('.progress').style.width = `${percent}%`;
-            document.querySelector('#loading-screen h1').textContent = message;
-            
-            if (percent < 100) {
-                const nextPercent = Math.min(percent + Math.random() * 20, 99);
-                const messages = [
-                    "Obtendo itens mágicos...",
-                    "Preparando inimigos...",
-                    "Carregando texturas...",
-                    "Gerando terreno..."
-                ];
-                const nextMessage = messages[Math.floor(Math.random() * messages.length)];
-                
-                setTimeout(() => {
-                    updateLoadingProgress(nextPercent, nextMessage);
-                }, 300 + Math.random() * 500);
-            }
-        }
-
-        // 🎉 Esconde tela de carregamento
-        function hideLoadingScreen() {
-            updateLoadingProgress(100, "Pronto para a aventura!");
-            
-            setTimeout(() => {
-                const loadingScreen = document.getElementById('loading-screen');
-                loadingScreen.style.opacity = '0';
-                
-                setTimeout(() => {
-                    loadingScreen.classList.add('hidden');
-                    document.getElementById('game-container').classList.remove('hidden');
-                }, 500);
-            }, 800);
-        }
+// 🎉 Esconde tela de carregamento - VERSÃO CORRIGIDA
+function hideLoadingScreen() {
+    const loadingScreen = document.getElementById('loading-screen');
+    loadingScreen.style.opacity = '0';
+    
+    setTimeout(() => {
+        loadingScreen.classList.add('hidden');
+        document.getElementById('game-container').classList.remove('hidden');
+    }, 500);
+}
 
         // ❌ Mostra erro se algo falhar
         function showErrorScreen() {
