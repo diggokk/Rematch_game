@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zelda Web - A Lenda Recomeça</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="loading-screen">
+        <div class="loader"></div>
+        <h1>Carregando a Aventura...</h1>
+    </div>
+    
+    <div id="game-container" class="hidden">
+        <div id="game-map"></div>
+        <div id="player">
+            <div class="sword"></div>
+        </div>
+        <div id="hud">
+            <div class="hearts">
+                <span class="heart"></span>
+                <span class="heart"></span>
+                <span class="heart"></span>
+            </div>
+            <div class="rupees">0 <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyLDIwQTgsOCAwIDAsMSA0LDEyQTgsOCAwIDAsMSAxMiw0QTgsOCAwIDAsMSAyMCwxMkE4LDggMCAwLDEgMTIsMjBNMTIsMkExMCwxMCAwIDAsMCAyLDEyQTEwLDEwIDAgMCwwIDEyLDIyQTEwLDEwIDAgMCwwIDIyLDEyQTEwLTEwIDAgMCwwIDEyLDJaIiBmaWxsPSIjMDA4OGZmIi8+PC9zdmc+" alt="Rupee"></div>
+            <div class="keys">0 <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTcsMTdBMiwyIDAgMCwwIDksMTlIMjlBMiwyIDAgMCwwIDIxLDE3VjEzSDlBMiwyIDAgMCwwIDcsMTFWOUgxOVY3SDlBMiwyIDAgMCwwIDcsOVY3QTIsMiAwIDAsMCA5LDVIMjlBMiwyIDAgMCwwIDIxLDdWMTdNOSw5SDIxVjExSDlWOU0xNSwxM1YxNUgxN1YxM0gxNVoiIGZpbGw9IiNmZmZmMDAiLz48L3N2Zz4=" alt="Key"></div>
+        </div>
+        <div id="dialog-box" class="hidden">
+            <div class="dialog-content"></div>
+            <button class="dialog-button">Continuar</button>
+        </div>
+        <div id="particles"></div>
+    </div>
+    
+    <audio id="bg-music" loop>
+        <source src="https://assets.codepen.io/21542/zelda-like-music.mp3" type="audio/mpeg">
+    </audio>
+    
+    <script src="game.js"></script>
+</body>
+</html>
