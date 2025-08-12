@@ -3,1788 +3,237 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zelda Web - A Lenda Recomeça</title>
+    <title>Universo de Partículas PRO Turbo</title>
     <style>
-        /* Estilos da Tela de Carregamento */
-        #loading-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at center, #0a3d0a 0%, #000 70%),
-                url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="none" stroke="%23185c18" stroke-width="2"/></svg>');
-            background-size: 40px 40px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            color: #e8f0e8;
-            text-align: center;
-            transition: opacity 1s ease-out;
-        }
-
-        .loading-content {
-            position: relative;
-            width: 80%;
-            max-width: 500px;
-        }
-
-        .triforce-container {
-            width: 120px;
-            height: 104px;
-            margin: 0 auto 30px;
-            position: relative;
-            filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.7));
-        }
-
-        .triforce {
-            position: absolute;
-            width: 0;
-            height: 0;
-            border-left: 60px solid transparent;
-            border-right: 60px solid transparent;
-            border-bottom: 104px solid gold;
-            animation: triforceGlow 2s infinite alternate;
-        }
-
-        .triforce::before,
-        .triforce::after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 0;
-            border-left: 30px solid transparent;
-            border-right: 30px solid transparent;
-            border-bottom: 52px solid gold;
-        }
-
-        .triforce::before {
-            top: 52px;
-            left: -90px;
-        }
-
-        .triforce::after {
-            top: 52px;
-            left: -30px;
-        }
-
-        @keyframes triforceGlow {
-            0% { opacity: 0.8; filter: drop-shadow(0 0 5px gold); }
-            100% { opacity: 1; filter: drop-shadow(0 0 15px gold); }
-        }
-
-        .loading-text {
-            font-size: 24px;
-            margin-bottom: 20px;
-            text-shadow: 0 0 10px #0f0, 0 0 5px #0f0;
-            letter-spacing: 2px;
-            font-family: 'Times New Roman', serif;
-            position: relative;
-        }
-
-        .loading-text::after {
-            content: '...';
-            position: absolute;
-            animation: dots 1.5s infinite steps(3);
-        }
-
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60%, 100% { content: '...'; }
-        }
-
-        .progress-container {
-            width: 100%;
-            height: 20px;
-            background-color: rgba(0, 20, 0, 0.5);
-            border: 2px solid #185c18;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
-        }
-
-        .progress-bar {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #185c18, #3cb043, #90ee90);
-            border-radius: 8px;
-            transition: width 0.3s ease-out;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .progress-bar::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(
-                90deg,
-                transparent,
-                rgba(255, 255, 255, 0.3),
-                transparent
-            );
-            animation: progressShine 2s infinite;
-        }
-
-        @keyframes progressShine {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-
-        .hint-text {
-            margin-top: 20px;
-            font-size: 14px;
-            color: #90ee90;
-            font-style: italic;
-            opacity: 0.8;
-        }
-
-        .loading-rupees {
-            display: flex;
-            justify-content: center;
-            margin-top: 30px;
-            gap: 15px;
-        }
-
-        .rupee {
-            width: 20px;
-            height: 30px;
-            background-color: #0088ff;
-            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            animation: float 3s infinite ease-in-out;
-            opacity: 0.7;
-        }
-
-        .rupee:nth-child(1) { animation-delay: 0s; }
-        .rupee:nth-child(2) { animation-delay: 0.5s; }
-        .rupee:nth-child(3) { animation-delay: 1s; }
-        .rupee:nth-child(4) { animation-delay: 1.5s; }
-        .rupee:nth-child(5) { animation-delay: 2s; }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
-        }
-
-        .fade-out {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        /* Estilos do Jogo Principal */
-        :root {
-            --grass-color: #2d5a27;
-            --grass-light: #3d8b3d;
-            --water-color: #1a5b7a;
-            --player-color: #4169e1;
-            --enemy-color: #c22e28;
-            --rupee-color: #0088ff;
-            --key-color: #ffff00;
-            --heart-color: #ff4444;
-            --shadow-color: rgba(0, 0, 0, 0.6);
-            --boss-color: #8b0000;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
         body {
             margin: 0;
-            padding: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Arial', sans-serif;
+            color: white;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #111;
-            font-family: 'MedievalSharp', cursive;
-            overflow: hidden;
-            color: white;
-            text-shadow: 2px 2px 4px var(--shadow-color);
         }
 
-        #game-container {
+        #intro-screen {
             position: relative;
-            width: 800px;
-            height: 600px;
-            background-color: #000;
-            overflow: hidden;
-            border: 8px solid #654321;
-            box-shadow: 0 0 30px rgba(0, 0, 0, 0.8);
-            border-radius: 10px;
-            transform: scale(0.95);
-            transition: transform 0.3s;
-            display: none;
-        }
-
-        #game-container:hover {
-            transform: scale(1);
-        }
-
-        #game-map {
-            width: 2400px;
-            height: 1800px;
-            background: 
-                linear-gradient(45deg, var(--grass-color) 25%, transparent 25%) -50px -50px,
-                linear-gradient(-45deg, var(--grass-color) 25%, transparent 25%) -50px -50px,
-                linear-gradient(45deg, transparent 75%, var(--grass-light) 75%),
-                linear-gradient(-45deg, transparent 75%, var(--grass-light) 75%);
-            background-size: 100px 100px;
-            position: absolute;
-            transition: all 0.5s ease-out;
-            will-change: transform;
-        }
-
-        #player {
-            position: absolute;
-            width: 48px;
-            height: 48px;
-            background-color: var(--player-color);
-            border-radius: 5px;
-            z-index: 20;
-            transition: all 0.15s ease-out;
-            transform-origin: center;
-            box-shadow: 0 0 15px rgba(65, 105, 225, 0.7);
-            animation: pulse 2s infinite alternate;
-        }
-
-        #player::before {
-            content: '';
-            position: absolute;
-            top: -5px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 20px;
-            height: 10px;
-            background-color: #333;
-            border-radius: 50% 50% 0 0;
-        }
-
-        .sword {
-            position: absolute;
-            width: 30px;
-            height: 8px;
-            background: linear-gradient(to right, #ccc, #fff);
-            border-radius: 4px;
-            top: 50%;
-            left: 48px;
-            transform: translateY(-50%);
-            opacity: 0;
-            transition: opacity 0.3s;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
             z-index: 10;
-            box-shadow: 0 0 10px white;
         }
 
-        #player.attacking .sword {
-            opacity: 1;
-            animation: swordAttack 0.3s forwards;
-        }
-
-        @keyframes swordAttack {
-            0% { transform: translateY(-50%) rotate(0deg); }
-            50% { transform: translateY(-50%) rotate(90deg); }
-            100% { transform: translateY(-50%) rotate(0deg); }
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 15px rgba(65, 105, 225, 0.7); }
-            50% { transform: scale(1.02); box-shadow: 0 0 25px rgba(65, 105, 225, 0.9); }
-            100% { transform: scale(1); box-shadow: 0 0 15px rgba(65, 105, 225, 0.7); }
-        }
-
-        .enemy {
+        #space-background {
             position: absolute;
-            width: 48px;
-            height: 48px;
-            background-color: var(--enemy-color);
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at center, #000000 0%, #1a0033 100%);
+            z-index: 1;
+        }
+
+        .star {
+            position: absolute;
+            background: #fff;
             border-radius: 50%;
-            z-index: 15;
-            animation: enemyPulse 2s infinite alternate;
-            box-shadow: 0 0 15px rgba(194, 46, 40, 0.7);
-            will-change: transform, opacity;
+            animation: twinkle 2s infinite alternate;
         }
 
-        .boss {
-            position: absolute;
-            width: 72px;
-            height: 72px;
-            background-color: var(--boss-color);
-            border-radius: 50%;
-            z-index: 15;
-            animation: bossPulse 1.5s infinite alternate;
-            box-shadow: 0 0 25px rgba(139, 0, 0, 0.8);
-            will-change: transform, opacity;
+        @keyframes twinkle {
+            0% { opacity: 0.3; }
+            100% { opacity: 1; }
         }
 
-        @keyframes enemyPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        @keyframes bossPulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-            100% { transform: scale(1); }
-        }
-
-        .obstacle {
-            position: absolute;
-            background-color: #5a3d2e;
-            z-index: 10;
-            border: 4px solid #3a2a1e;
-            border-radius: 5px;
-            box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
-        }
-
-        .tree {
-            background: radial-gradient(circle at 30% 30%, #3a5a20, #2e4a10);
-            border-radius: 50% 50% 40% 40%;
+        #robot-speech {
+            background: rgba(0, 0, 50, 0.7);
+            border: 2px solid #00f7ff;
+            border-radius: 15px;
+            padding: 20px;
+            max-width: 600px;
+            margin: 20px;
+            font-size: 1.5em;
+            text-shadow: 0 0 10px #00f7ff;
             position: relative;
         }
 
-        .tree::after {
-            content: '';
-            position: absolute;
-            bottom: -15px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 20px;
-            height: 30px;
-            background-color: #5a3d2e;
-            border-radius: 5px;
-        }
-
-        .water {
-            background: linear-gradient(45deg, var(--water-color) 25%, transparent 25%) -50px -50px,
-                       linear-gradient(-45deg, var(--water-color) 25%, transparent 25%) -50px -50px,
-                       linear-gradient(45deg, transparent 75%, #1a7ba5 75%),
-                       linear-gradient(-45deg, transparent 75%, #1a7ba5 75%);
-            background-size: 100px 100px;
-            animation: waterFlow 20s linear infinite;
-        }
-
-        @keyframes waterFlow {
-            0% { background-position: 0 0; }
-            100% { background-position: 200px 200px; }
-        }
-
-        .rupee {
-            position: absolute;
-            width: 24px;
-            height: 36px;
-            background-color: var(--rupee-color);
-            clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
-            z-index: 15;
-            animation: float 3s ease-in-out infinite, glow 2s alternate infinite;
-            box-shadow: 0 0 15px var(--rupee-color);
-            transform: translateY(0);
-            will-change: transform, opacity;
-        }
-
-        .key {
-            position: absolute;
-            width: 24px;
-            height: 24px;
-            background-color: var(--key-color);
-            clip-path: polygon(50% 0%, 100% 30%, 80% 50%, 100% 70%, 50% 100%, 0% 70%, 20% 50%, 0% 30%);
-            z-index: 15;
-            animation: spin 4s linear infinite, glow-gold 2s alternate infinite;
-            will-change: transform, opacity;
-        }
-
-        .chest {
-            position: absolute;
-            width: 48px;
-            height: 36px;
-            background-color: #b8860b;
-            border: 4px solid #8b4513;
-            border-radius: 5px;
-            z-index: 15;
-            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.5);
-        }
-
-        .chest::before {
-            content: '';
-            position: absolute;
-            top: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 40px;
-            height: 8px;
-            background-color: #daa520;
-            border-radius: 5px 5px 0 0;
-        }
-
-        .chest.locked::after {
-            content: '🔒';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 20px;
+        #robot-emoji {
+            font-size: 3em;
+            margin-bottom: 10px;
+            animation: float 3s ease-in-out infinite;
         }
 
         @keyframes float {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        #boss {
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, #ff0000 0%, #8b0000 70%);
+            border-radius: 50%;
+            box-shadow: 0 0 30px #ff0000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: pulse 2s infinite alternate;
+        }
+
+        #boss-eye {
+            width: 80px;
+            height: 80px;
+            background: #000;
+            border-radius: 50%;
+            border: 5px solid #660000;
+            position: relative;
+        }
+
+        #boss-eye::before {
+            content: "";
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: #ff0000;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation: glow 1.5s infinite alternate;
         }
 
         @keyframes glow {
-            0% { box-shadow: 0 0 10px var(--rupee-color); }
-            100% { box-shadow: 0 0 20px var(--rupee-color); }
+            0% { opacity: 0.7; box-shadow: 0 0 10px #ff0000; }
+            100% { opacity: 1; box-shadow: 0 0 30px #ff0000; }
         }
 
-        @keyframes glow-gold {
-            0% { box-shadow: 0 0 10px var(--key-color); }
-            100% { box-shadow: 0 0 20px var(--key-color); }
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .heart {
-            display: inline-block;
-            width: 24px;
-            height: 24px;
-            background-color: var(--heart-color);
-            transform: rotate(45deg);
-            margin: 0 5px;
-            position: relative;
-            animation: heartbeat 1.5s infinite;
-        }
-
-        .heart::before,
-        .heart::after {
-            content: '';
-            width: 24px;
-            height: 24px;
-            background-color: var(--heart-color);
+        .tentacle {
+            position: absolute;
+            background: linear-gradient(to right, #8b0000, #ff4500);
+            width: 15px;
+            height: 80px;
             border-radius: 50%;
-            position: absolute;
+            animation: wiggle 3s infinite ease-in-out;
         }
 
-        .heart::before {
-            top: -12px;
-            left: 0;
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.05); }
         }
 
-        .heart::after {
-            top: 0;
-            left: -12px;
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(10deg); }
+            75% { transform: rotate(-10deg); }
         }
 
-        @keyframes heartbeat {
-            0% { transform: rotate(45deg) scale(1); }
-            25% { transform: rotate(45deg) scale(1.1); }
-            50% { transform: rotate(45deg) scale(1); }
-            75% { transform: rotate(45deg) scale(1.2); }
-            100% { transform: rotate(45deg) scale(1); }
+        #title {
+            font-size: 3em;
+            font-weight: bold;
+            text-shadow: 0 0 15px #00f7ff, 0 0 30px #0066ff;
+            margin: 20px 0;
+            animation: neon 1.5s infinite alternate;
         }
 
-        #hud {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            z-index: 30;
-            display: flex;
-            gap: 20px;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px 15px;
-            border-radius: 10px;
-            border: 2px solid #654321;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+        @keyframes neon {
+            0% { opacity: 0.8; }
+            100% { opacity: 1; text-shadow: 0 0 20px #00f7ff, 0 0 40px #0066ff; }
         }
 
-        .hearts, .rupees, .keys {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: 24px;
-        }
-
-        .rupees img, .keys img {
-            width: 24px;
-            height: 24px;
-        }
-
-        #dialog-box {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 80%;
-            background-color: rgba(0, 0, 0, 0.8);
-            border: 4px solid #654321;
-            border-radius: 10px;
-            padding: 20px;
-            z-index: 40;
-            display: none;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.9);
-        }
-
-        .dialog-content {
-            font-size: 18px;
-            margin-bottom: 15px;
-            line-height: 1.5;
-        }
-
-        .dialog-button {
-            background-color: #4169e1;
-            color: white;
+        #start-button {
+            margin-top: 30px;
+            padding: 15px 30px;
+            background: linear-gradient(to right, #0066ff, #00f7ff);
             border: none;
-            padding: 8px 20px;
-            border-radius: 5px;
+            border-radius: 50px;
+            color: white;
+            font-size: 1.5em;
+            font-weight: bold;
             cursor: pointer;
-            font-family: 'MedievalSharp', cursive;
-            font-size: 16px;
+            box-shadow: 0 0 20px #0066ff;
             transition: all 0.3s;
         }
 
-        .dialog-button:hover {
-            background-color: #5a7be1;
-            transform: scale(1.05);
-        }
-
-        #particles {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            pointer-events: none;
-            z-index: 5;
-        }
-
-        #pause-menu {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.7);
-            z-index: 50;
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-        }
-
-        #pause-menu h1 {
-            font-size: 48px;
-            margin-bottom: 30px;
-            color: gold;
-        }
-
-        .menu-button {
-            background-color: #4169e1;
-            color: white;
-            border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-family: 'MedievalSharp', cursive;
-            font-size: 20px;
-            margin: 10px;
-            transition: all 0.3s;
-            width: 200px;
-            text-align: center;
-        }
-
-        .menu-button:hover {
-            background-color: #5a7be1;
-            transform: scale(1.05);
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        /* Efeitos especiais */
-        .damage-effect {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 0, 0, 0.3);
-            z-index: 50;
-            pointer-events: none;
-            opacity: 0;
-        }
-
-        @keyframes damageFlash {
-            0% { opacity: 0; }
-            50% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-
-        /* Transições de tela */
-        .screen-transition {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: black;
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.5s;
-        }
-
-        .error-screen {
-            text-align: center;
-            padding: 20px;
-        }
-
-        .error-screen button {
-            margin-top: 20px;
-            padding: 10px 25px;
-            background-color: #c22e28;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-family: 'MedievalSharp', cursive;
-            font-size: 18px;
+        #start-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 30px #00f7ff;
         }
     </style>
 </head>
 <body>
-    <!-- Tela de Carregamento -->
-    <div id="loading-screen">
-        <div class="loading-content">
-            <div class="triforce-container">
-                <div class="triforce"></div>
-            </div>
-            <h1 class="loading-text">Carregando a Aventura</h1>
-            <div class="progress-container">
-                <div class="progress-bar" id="progress-bar"></div>
-            </div>
-            <p class="hint-text">Dica: Colete rupees para comprar itens úteis</p>
-            <div class="loading-rupees">
-                <div class="rupee"></div>
-                <div class="rupee"></div>
-                <div class="rupee"></div>
-                <div class="rupee"></div>
-                <div class="rupee"></div>
-            </div>
+    <div id="space-background"></div>
+    <div id="intro-screen">
+        <div id="robot-emoji">🤖</div>
+        <div id="robot-speech">
+            <p>Ano 2147. O Universo não é mais o mesmo...</p>
+            <p>Uma anomalia cósmica desencadeou a <strong>Grande Fragmentação da Matéria</strong>, transformando tudo em partículas hiper-energizadas!</p>
+            <p>Agora, só você – o <strong>ÚLTIMO PILOTO QUÂNTICO</strong> – pode controlar esse caos!</p>
         </div>
+        <div id="boss">
+            <div id="boss-eye"></div>
+            <!-- Tentáculos do Boss -->
+            <div class="tentacle" style="top: -40px; left: 50%; transform: rotate(0deg);"></div>
+            <div class="tentacle" style="top: 50%; left: -40px; transform: rotate(90deg);"></div>
+            <div class="tentacle" style="bottom: -40px; left: 50%; transform: rotate(180deg);"></div>
+            <div class="tentacle" style="top: 50%; right: -40px; transform: rotate(270deg);"></div>
+        </div>
+        <div id="title">UNIVERSO DE PARTÍCULAS <span style="color: #ff00ff;">PRO TURBO</span></div>
+        <button id="start-button">INICIAR REALIDADE QUÂNTICA</button>
     </div>
-    
-    <!-- Jogo Principal -->
-    <div id="game-container">
-        <div id="game-map"></div>
-        <div id="player">
-            <div class="sword"></div>
-        </div>
-        <div id="hud">
-            <div class="hearts">
-                <span class="heart"></span>
-                <span class="heart"></span>
-                <span class="heart"></span>
-            </div>
-            <div class="rupees">0 <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyLDIwQTgsOCAwIDAsMSA0LDEyQTgsOCAwIDAsMSAxMiw0QTgsOCAwIDAsMSAyMCwxMkE4LDggMCAwLDEgMTIsMjBNMTIsMkExMCwxMCAwIDAsMCAyLDEyQTEwLDEwIDAgMCwwIDEyLDIyQTEwLDEwIDAgMCwwIDIyLDEyQTEwLTEwIDAgMCwwIDEyLDIiIGZpbGw9IiMwMDg4ZmYiLz48L3N2Zz4=" alt="Rupee"></div>
-            <div class="keys">0 <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTcsMTdBMiwyIDAgMCwwIDksMTlIMjlBMiwyIDAgMCwwIDIxLDE3VjEzSDlBMiwyIDAgMCwwIDcsMTFWOUgxOVY3SDlBMiwyIDAgMCwwIDcsOVY3QTIsMiAwIDAsMCA5LDVIMjlBMiwyIDAgMCwwIDIxLDdWMTdNOSw5SDIxVjExSDlWOU0xNSwxM1YxNUgxN1YxM0gxNVoiIGZpbGw9IiNmZmZmMDAiLz48L3N2Zz4=" alt="Key"></div>
-        </div>
-        <div id="dialog-box" class="hidden">
-            <div class="dialog-content"></div>
-            <button class="dialog-button">Continuar</button>
-        </div>
-        <div id="particles"></div>
-        <div id="pause-menu">
-            <h1>Jogo Pausado</h1>
-            <button class="menu-button" id="resume-button">Continuar</button>
-            <button class="menu-button" id="restart-button">Reiniciar</button>
-            <button class="menu-button" id="quit-button">Sair</button>
-        </div>
-    </div>
-    
-    <!-- Elementos de Áudio -->
-    <audio id="bg-music" preload="auto" loop>
-        <source src="https://assets.codepen.io/21542/zelda-like-music-short.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="sword-sound" preload="auto">
-        <source src="https://assets.codepen.io/21542/sword-swing.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="rupee-sound" preload="auto">
-        <source src="https://assets.codepen.io/21542/rupee-collect.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="damage-sound" preload="auto">
-        <source src="https://assets.codepen.io/21542/damage-sound.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="enemy-death-sound" preload="auto">
-        <source src="https://assets.codepen.io/21542/enemy-death.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="key-sound" preload="auto">
-        <source src="https://assets.codepen.io/21542/key-collect.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="chest-sound" preload="auto">
-        <source src="https://assets.codepen.io/21542/chest-open.mp3" type="audio/mpeg">
-    </audio>
 
     <script>
-        // 🎮 Configurações Avançadas do Jogo
-        const config = {
-            playerSpeed: 6,
-            enemyCount: 8,
-            bossCount: 2,
-            rupeeCount: 15,
-            keyCount: 3,
-            chestCount: 3,
-            mapWidth: 2400,
-            mapHeight: 1800,
-            viewportWidth: 800,
-            viewportHeight: 600,
-            attackCooldown: 500,
-            enemySpawnRate: 10000,
-            musicVolume: 0.3,
-            soundVolume: 0.5,
-            bossHealth: 5,
-            enemyHealth: 2
-        };
-
-        // 🏰 Estado do Jogo
-        const gameState = {
-            player: {
-                x: 1200,
-                y: 900,
-                health: 3,
-                maxHealth: 3,
-                rupees: 0,
-                keys: 0,
-                attacking: false,
-                lastAttack: 0,
-                direction: { x: 0, y: 1 },
-                hasSword: true,
-                hasShield: false
-            },
-            keys: {},
-            enemies: [],
-            bosses: [],
-            rupees: [],
-            keysItems: [],
-            chests: [],
-            obstacles: [],
-            gameTime: 0,
-            currentDialog: null,
-            inDialog: false,
-            isPaused: false,
-            gameStarted: false,
-            savedData: null
-        };
-
-        // 🎵 Elementos de Áudio
-        const audioElements = {
-            bgMusic: document.getElementById('bg-music'),
-            swordSound: document.getElementById('sword-sound'),
-            rupeeSound: document.getElementById('rupee-sound'),
-            damageSound: document.getElementById('damage-sound'),
-            enemyDeathSound: document.getElementById('enemy-death-sound'),
-            keySound: document.getElementById('key-sound'),
-            chestSound: document.getElementById('chest-sound')
-        };
-
-        // 🔄 Configura volume inicial
-        function setupAudio() {
-            audioElements.bgMusic.volume = config.musicVolume;
-            audioElements.swordSound.volume = config.soundVolume;
-            audioElements.rupeeSound.volume = config.soundVolume;
-            audioElements.damageSound.volume = config.soundVolume;
-            audioElements.enemyDeathSound.volume = config.soundVolume;
-            audioElements.keySound.volume = config.soundVolume;
-            audioElements.chestSound.volume = config.soundVolume;
-        }
-
-        // 🔊 Toca um som
-        function playSound(soundName) {
-            if (audioElements[soundName]) {
-                audioElements[soundName].currentTime = 0;
-                audioElements[soundName].play().catch(e => console.log("Erro ao tocar som:", e));
+        // Cria estrelas no fundo
+        function createStars() {
+            const space = document.getElementById('space-background');
+            for (let i = 0; i < 200; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.width = `${Math.random() * 3}px`;
+                star.style.height = star.style.width;
+                star.style.left = `${Math.random() * 100}%`;
+                star.style.top = `${Math.random() * 100}%`;
+                star.style.animationDelay = `${Math.random() * 2}s`;
+                space.appendChild(star);
             }
         }
 
-        // 🚀 Sistema de Carregamento Turbo
-        async function initGame() {
-            updateLoadingProgress(0, "Inicializando...");
-            
-            try {
-                // Verifica dados salvos
-                checkSavedData();
-                
-                // Carrega assets essenciais primeiro
-                await loadEssentialAssets();
-                updateLoadingProgress(30, "Carregando recursos...");
-                
-                // Configura áudio
-                setupAudio();
-                updateLoadingProgress(50, "Preparando áudio...");
-                
-                // Gera o mundo do jogo
-                generateWorld();
-                updateLoadingProgress(80, "Criando mundo...");
-                
-                // Configura controles
-                setupEventListeners();
-                
-                // Completa o carregamento
-                updateLoadingProgress(100, "Pronto para a aventura!");
-                
-                // Espera um pouco para mostrar 100%
-                await new Promise(resolve => setTimeout(resolve, 500));
-                
-                completeLoading();
-            } catch (error) {
-                console.error("Erro ao inicializar o jogo:", error);
-                showErrorScreen();
-            }
-        }
+        // Sequência de diálogo
+        function startDialogue() {
+            const speech = document.getElementById('robot-speech');
+            const dialogues = [
+                "Ano 2147. O Universo não é mais o mesmo...",
+                "Uma anomalia cósmica desencadeou a <strong>Grande Fragmentação da Matéria</strong>!",
+                "Tudo se tornou partículas hiper-energizadas!",
+                "Agora, só você – o <strong>ÚLTIMO PILOTO QUÂNTICO</strong> – pode controlar esse caos!",
+                "Mas cuidado... <strong>O VÓRTICE ANTIMATÉRIA</strong> está te observando... 👁️"
+            ];
 
-        // 📦 Carrega assets essenciais
-        async function loadEssentialAssets() {
-            return new Promise((resolve) => {
-                const bgMusic = document.getElementById('bg-music');
-                bgMusic.oncanplaythrough = resolve;
-                bgMusic.load();
-            });
-        }
-
-        // 💾 Verifica dados salvos
-        function checkSavedData() {
-            const savedData = localStorage.getItem('zeldaWebSave');
-            if (savedData) {
-                gameState.savedData = JSON.parse(savedData);
-            }
-        }
-
-        // 📊 Atualiza barra de progresso
-        function updateLoadingProgress(percent, message) {
-            document.getElementById('progress-bar').style.width = `${percent}%`;
-            document.querySelector('.loading-text').textContent = message;
-            
-            // Atualiza dica a cada 20% de progresso
-            if (percent % 20 === 0) {
-                const hints = [
-                    "Explore cada canto do mapa para encontrar segredos",
-                    "Inimigos mais fortes aparecem à noite",
-                    "Baús trancados contêm itens valiosos",
-                    "Use seu escudo para bloquear ataques",
-                    "Chefes dão recompensas especiais quando derrotados"
-                ];
-                const randomHint = hints[Math.floor(Math.random() * hints.length)];
-                document.querySelector('.hint-text').textContent = `Dica: ${randomHint}`;
-            }
-        }
-
-        // 🎉 Completa o carregamento e inicia o jogo
-        function completeLoading() {
-            document.querySelector('.loading-text').textContent = "Pronto para a aventura!";
-            document.getElementById('loading-screen').classList.add('fade-out');
-            
-            setTimeout(() => {
-                document.getElementById('loading-screen').style.display = 'none';
-                document.getElementById('game-container').style.display = 'block';
-                startGame();
-            }, 1000);
-        }
-
-        // ❌ Mostra erro se algo falhar
-        function showErrorScreen() {
-            document.getElementById('loading-screen').innerHTML = `
-                <div class="error-screen">
-                    <h1>Erro ao Carregar</h1>
-                    <p>A aventura não pode começar agora. Por favor, recarregue a página.</p>
-                    <button onclick="window.location.reload()">Tentar Novamente</button>
-                </div>
-            `;
-        }
-
-        // 🎮 Inicia o jogo
-        function startGame() {
-            // Aplica dados salvos se existirem
-            if (gameState.savedData) {
-                applySavedData();
-            }
-            
-            startEnemySpawner();
-            startBossSpawner();
-            
-            // Inicia música
-            audioElements.bgMusic.play().catch(e => console.log("Autoplay bloqueado:", e));
-            
-            // Mostra mensagem inicial
-            showDialog("Bem-vindo a Hyrule! Use as teclas WASD ou setas para mover. Espaço ou Z para atacar. P para pausar.");
-            
-            gameState.gameStarted = true;
-            gameLoop();
-        }
-
-        // 💾 Aplica dados salvos
-        function applySavedData() {
-            const data = gameState.savedData;
-            gameState.player.rupees = data.rupees || 0;
-            gameState.player.keys = data.keys || 0;
-            gameState.player.health = data.health || 3;
-            gameState.player.maxHealth = data.maxHealth || 3;
-            gameState.player.hasSword = data.hasSword !== false;
-            gameState.player.hasShield = data.hasShield || false;
-            
-            updateHUD();
-        }
-
-        // 💾 Salva o progresso
-        function saveGame() {
-            const saveData = {
-                rupees: gameState.player.rupees,
-                keys: gameState.player.keys,
-                health: gameState.player.health,
-                maxHealth: gameState.player.maxHealth,
-                hasSword: gameState.player.hasSword,
-                hasShield: gameState.player.hasShield,
-                timestamp: Date.now()
-            };
-            
-            localStorage.setItem('zeldaWebSave', JSON.stringify(saveData));
-        }
-
-        // 🌍 Gera o mundo do jogo
-        function generateWorld() {
-            const gameMap = document.getElementById('game-map');
-            gameMap.innerHTML = '';
-            
-            createObstacles();
-            createCollectibles();
-            createChests();
-            positionPlayer();
-        }
-
-        // 🌳 Cria obstáculos no mundo
-        function createObstacles() {
-            const gameMap = document.getElementById('game-map');
-            
-            // Floresta
-            for (let i = 0; i < 50; i++) {
-                const tree = {
-                    x: Math.random() * config.mapWidth,
-                    y: Math.random() * config.mapHeight,
-                    width: 60 + Math.random() * 40,
-                    height: 80 + Math.random() * 40,
-                    type: 'tree'
-                };
-                gameState.obstacles.push(tree);
-                
-                const treeElement = document.createElement('div');
-                treeElement.className = 'obstacle tree';
-                treeElement.style.left = `${tree.x - tree.width/2}px`;
-                treeElement.style.top = `${tree.y - tree.height/2}px`;
-                treeElement.style.width = `${tree.width}px`;
-                treeElement.style.height = `${tree.height}px`;
-                gameMap.appendChild(treeElement);
-            }
-            
-            // Lagos de água
-            for (let i = 0; i < 10; i++) {
-                const waterSize = 150 + Math.random() * 200;
-                const water = {
-                    x: Math.random() * (config.mapWidth - waterSize),
-                    y: Math.random() * (config.mapHeight - waterSize),
-                    width: waterSize,
-                    height: waterSize,
-                    type: 'water'
-                };
-                gameState.obstacles.push(water);
-                
-                const waterElement = document.createElement('div');
-                waterElement.className = 'obstacle water';
-                waterElement.style.left = `${water.x}px`;
-                waterElement.style.top = `${water.y}px`;
-                waterElement.style.width = `${water.width}px`;
-                waterElement.style.height = `${water.height}px`;
-                gameMap.appendChild(waterElement);
-            }
-        }
-
-        // 💎 Cria itens colecionáveis
-        function createCollectibles() {
-            // Rupees
-            for (let i = 0; i < config.rupeeCount; i++) {
-                createRupee();
-            }
-            
-            // Chaves
-            for (let i = 0; i < config.keyCount; i++) {
-                createKey();
-            }
-        }
-
-        // 🏦 Cria baús no mundo
-        function createChests() {
-            const gameMap = document.getElementById('game-map');
-            
-            for (let i = 0; i < config.chestCount; i++) {
-                const chest = {
-                    x: Math.random() * (config.mapWidth - 100) + 50,
-                    y: Math.random() * (config.mapHeight - 100) + 50,
-                    locked: true,
-                    opened: false
-                };
-                
-                gameState.chests.push(chest);
-                
-                const chestElement = document.createElement('div');
-                chestElement.className = 'chest locked';
-                chestElement.style.left = `${chest.x - 24}px`;
-                chestElement.style.top = `${chest.y - 18}px`;
-                chestElement.dataset.index = gameState.chests.length - 1;
-                gameMap.appendChild(chestElement);
-            }
-        }
-
-        // 💰 Cria uma rupee
-        function createRupee() {
-            const gameMap = document.getElementById('game-map');
-            
-            const rupee = {
-                x: Math.random() * (config.mapWidth - 50) + 25,
-                y: Math.random() * (config.mapHeight - 50) + 25,
-                collected: false
-            };
-            
-            gameState.rupees.push(rupee);
-            
-            const rupeeElement = document.createElement('div');
-                rupeeElement.className = 'rupee';
-                rupeeElement.style.left = `${rupee.x - 12}px`;
-                rupeeElement.style.top = `${rupee.y - 18}px`;
-                rupeeElement.dataset.index = gameState.rupees.length - 1;
-                gameMap.appendChild(rupeeElement);
-        }
-
-        // 🔑 Cria uma chave
-        function createKey() {
-            const gameMap = document.getElementById('game-map');
-            
-            const key = {
-                x: Math.random() * (config.mapWidth - 50) + 25,
-                y: Math.random() * (config.mapHeight - 50) + 25,
-                collected: false
-            };
-            
-            gameState.keysItems.push(key);
-            
-            const keyElement = document.createElement('div');
-            keyElement.className = 'key';
-            keyElement.style.left = `${key.x - 12}px`;
-            keyElement.style.top = `${key.y - 12}px`;
-            keyElement.dataset.index = gameState.keysItems.length - 1;
-            gameMap.appendChild(keyElement);
-        }
-
-        // 🧍 Posiciona o jogador
-        function positionPlayer() {
-            const playerElement = document.getElementById('player');
-            playerElement.style.left = `${config.viewportWidth/2 - 24}px`;
-            playerElement.style.top = `${config.viewportHeight/2 - 24}px`;
-        }
-
-        // 🎮 Configura listeners de eventos
-        function setupEventListeners() {
-            // Teclado
-            window.addEventListener('keydown', (e) => {
-                if (gameState.inDialog && e.key === 'Enter') {
-                    closeDialog();
-                    return;
-                }
-                
-                if (e.key === 'p' || e.key === 'P') {
-                    togglePause();
-                    return;
-                }
-                
-                gameState.keys[e.key] = true;
-                
-                // Ataque com espaço ou 'z'
-                if ((e.key === ' ' || e.key === 'z') && !gameState.player.attacking && gameState.player.hasSword) {
-                    attack();
-                }
-            });
-            
-            window.addEventListener('keyup', (e) => {
-                gameState.keys[e.key] = false;
-            });
-            
-            // Botão de diálogo
-            document.querySelector('.dialog-button').addEventListener('click', closeDialog);
-            
-            // Botões do menu de pausa
-            document.getElementById('resume-button').addEventListener('click', togglePause);
-            document.getElementById('restart-button').addEventListener('click', restartGame);
-            document.getElementById('quit-button').addEventListener('click', () => {
-                saveGame();
-                window.location.reload();
-            });
-        }
-
-        // ⏸️ Pausa/despausa o jogo
-        function togglePause() {
-            gameState.isPaused = !gameState.isPaused;
-            
-            if (gameState.isPaused) {
-                document.getElementById('pause-menu').style.display = 'flex';
-                audioElements.bgMusic.pause();
-            } else {
-                document.getElementById('pause-menu').style.display = 'none';
-                audioElements.bgMusic.play().catch(e => console.log("Autoplay bloqueado:", e));
-            }
-        }
-
-        // 🔄 Reinicia o jogo
-        function restartGame() {
-            localStorage.removeItem('zeldaWebSave');
-            window.location.reload();
-        }
-
-        // ⚔️ Ataque do jogador
-        function attack() {
-            const now = Date.now();
-            if (now - gameState.player.lastAttack < config.attackCooldown) return;
-            
-            gameState.player.attacking = true;
-            gameState.player.lastAttack = now;
-            
-            const playerElement = document.getElementById('player');
-            playerElement.classList.add('attacking');
-            
-            playSound('swordSound');
-            
-            // Verifica acerto em inimigos
-            const swordRect = {
-                x: gameState.player.x + (gameState.player.direction.x * 40),
-                y: gameState.player.y + (gameState.player.direction.y * 40),
-                width: 30,
-                height: 30
-            };
-            
-            // Inimigos normais
-            gameState.enemies.forEach((enemy, index) => {
-                if (checkCollision(swordRect, { 
-                    x: enemy.x, 
-                    y: enemy.y, 
-                    width: 48, 
-                    height: 48 
-                })) {
-                    enemy.health--;
-                    if (enemy.health <= 0) {
-                        removeEnemy(index);
-                        createParticles(enemy.x, enemy.y, 10, '#ff4500');
-                        playSound('enemyDeathSound');
-                    }
-                }
-            });
-            
-            // Chefes
-            gameState.bosses.forEach((boss, index) => {
-                if (checkCollision(swordRect, { 
-                    x: boss.x, 
-                    y: boss.y, 
-                    width: 72, 
-                    height: 72 
-                })) {
-                    boss.health--;
-                    if (boss.health <= 0) {
-                        removeBoss(index);
-                        createParticles(boss.x, boss.y, 20, '#ff0000');
-                        playSound('enemyDeathSound');
-                        showDialog("Você derrotou um poderoso chefe! Encontrou um coração extra.");
-                        gameState.player.maxHealth = Math.min(5, gameState.player.maxHealth + 1);
-                        gameState.player.health = gameState.player.maxHealth;
-                        updateHUD();
-                    }
-                }
-            });
-            
-            setTimeout(() => {
-                playerElement.classList.remove('attacking');
-                gameState.player.attacking = false;
-            }, 300);
-        }
-
-        // 🏃‍♂️ Atualiza o jogador
-        function updatePlayer() {
-            const player = gameState.player;
-            let moveX = 0;
-            let moveY = 0;
-            
-            if (gameState.keys['ArrowUp'] || gameState.keys['w']) moveY = -1;
-            if (gameState.keys['ArrowDown'] || gameState.keys['s']) moveY = 1;
-            if (gameState.keys['ArrowLeft'] || gameState.keys['a']) moveX = -1;
-            if (gameState.keys['ArrowRight'] || gameState.keys['d']) moveX = 1;
-            
-            if (moveX !== 0 && moveY !== 0) {
-                moveX *= 0.7071;
-                moveY *= 0.7071;
-            }
-            
-            if (moveX !== 0 || moveY !== 0) {
-                player.direction = { x: moveX, y: moveY };
-                const sword = document.querySelector('.sword');
-                sword.style.left = moveX > 0 ? '48px' : '-30px';
-                sword.style.top = '50%';
-            }
-            
-            const newX = player.x + moveX * config.playerSpeed;
-            const newY = player.y + moveY * config.playerSpeed;
-            
-            const canMove = checkMovement(newX, newY, 48, 48);
-            
-            if (canMove.x) player.x = Math.max(24, Math.min(config.mapWidth - 72, newX));
-            if (canMove.y) player.y = Math.max(24, Math.min(config.mapHeight - 72, newY));
-        }
-
-        // 🧱 Verifica movimento válido
-        function checkMovement(x, y, width, height) {
-            const result = { x: true, y: true };
-            
-            // Verifica limites do mapa
-            if (x < 24 || x + width > config.mapWidth - 24) result.x = false;
-            if (y < 24 || y + height > config.mapHeight - 24) result.y = false;
-            
-            // Verifica obstáculos
-            gameState.obstacles.forEach(obstacle => {
-                if (
-                    x < obstacle.x + obstacle.width &&
-                    x + width > obstacle.x &&
-                    y < obstacle.y + obstacle.height &&
-                    y + height > obstacle.y
-                ) {
-                    if (obstacle.type === 'water') {
-                        takeDamage(1);
-                    }
-                    result.x = false;
-                    result.y = false;
-                }
-            });
-            
-            return result;
-        }
-
-        // 👾 Inicia spawn de inimigos
-        function startEnemySpawner() {
-            // Spawn inicial de inimigos
-            for (let i = 0; i < config.enemyCount; i++) {
-                createEnemy();
-            }
-            
-            // Spawn contínuo
-            setInterval(() => {
-                if (!gameState.isPaused && gameState.gameStarted && 
-                    gameState.enemies.length < config.enemyCount * 1.5) {
-                    createEnemy();
-                }
-            }, config.enemySpawnRate);
-        }
-
-        // 👑 Inicia spawn de chefes
-        function startBossSpawner() {
-            // Spawn inicial de chefes
-            for (let i = 0; i < config.bossCount; i++) {
-                createBoss();
-            }
-        }
-
-        // 🎮 Loop principal do jogo
-        function gameLoop() {
-            if (gameState.isPaused || !gameState.gameStarted) {
-                requestAnimationFrame(gameLoop);
-                return;
-            }
-            
-            updatePlayer();
-            updateEnemies();
-            updateBosses();
-            updateCamera();
-            checkCollectibles();
-            checkChests();
-            gameState.gameTime += 16;
-            
-            requestAnimationFrame(gameLoop);
-        }
-
-        // 👾 Atualiza inimigos
-        function updateEnemies() {
-            const player = gameState.player;
-            const enemies = document.querySelectorAll('.enemy');
-            
-            gameState.enemies.forEach((enemy, index) => {
-                const dx = player.x - enemy.x;
-                const dy = player.y - enemy.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance > 300) {
-                    if (Math.random() < 0.02) {
-                        enemy.speedX = Math.random() * 2 - 1;
-                        enemy.speedY = Math.random() * 2 - 1;
-                    }
+            let i = 0;
+            const interval = setInterval(() => {
+                if (i < dialogues.length) {
+                    speech.innerHTML = `<p>${dialogues[i]}</p>`;
+                    i++;
                 } else {
-                    enemy.speedX = dx / distance * 1.5;
-                    enemy.speedY = dy / distance * 1.5;
+                    clearInterval(interval);
                 }
-                
-                const newX = enemy.x + enemy.speedX;
-                const newY = enemy.y + enemy.speedY;
-                
-                const canMove = checkMovement(newX, newY, 48, 48);
-                
-                if (canMove.x) enemy.x = newX;
-                if (canMove.y) enemy.y = newY;
-                
-                enemies[index].style.left = `${enemy.x - 24}px`;
-                enemies[index].style.top = `${enemy.y - 24}px`;
-                
-                if (distance < 40 && !gameState.player.attacking) {
-                    takeDamage(1);
-                }
-            });
-        }
-
-        // 👑 Atualiza chefes
-        function updateBosses() {
-            const player = gameState.player;
-            const bosses = document.querySelectorAll('.boss');
-            
-            gameState.bosses.forEach((boss, index) => {
-                const dx = player.x - boss.x;
-                const dy = player.y - boss.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance > 500) {
-                    if (Math.random() < 0.01) {
-                        boss.speedX = Math.random() * 2 - 1;
-                        boss.speedY = Math.random() * 2 - 1;
-                    }
-                } else {
-                    boss.speedX = dx / distance * 1.2;
-                    boss.speedY = dy / distance * 1.2;
-                }
-                
-                const newX = boss.x + boss.speedX;
-                const newY = boss.y + boss.speedY;
-                
-                const canMove = checkMovement(newX, newY, 72, 72);
-                
-                if (canMove.x) boss.x = newX;
-                if (canMove.y) boss.y = newY;
-                
-                bosses[index].style.left = `${boss.x - 36}px`;
-                bosses[index].style.top = `${boss.y - 36}px`;
-                
-                if (distance < 50 && !gameState.player.attacking) {
-                    takeDamage(2);
-                }
-            });
-        }
-
-        // 📷 Atualiza a câmera
-        function updateCamera() {
-            const gameMap = document.getElementById('game-map');
-            const player = gameState.player;
-            
-            const mapX = -player.x + config.viewportWidth / 2;
-            const mapY = -player.y + config.viewportHeight / 2;
-            
-            const maxX = 0;
-            const minX = -(config.mapWidth - config.viewportWidth);
-            const maxY = 0;
-            const minY = -(config.mapHeight - config.viewportHeight);
-            
-            gameMap.style.left = `${Math.max(minX, Math.min(maxX, mapX))}px`;
-            gameMap.style.top = `${Math.max(minY, Math.min(maxY, mapY))}px`;
-        }
-
-        // 💰 Verifica colecionáveis
-        function checkCollectibles() {
-            const player = gameState.player;
-            
-            // Rupees
-            const rupeeElements = document.querySelectorAll('.rupee');
-            rupeeElements.forEach(rupeeElement => {
-                const index = parseInt(rupeeElement.dataset.index);
-                const rupee = gameState.rupees[index];
-                
-                if (!rupee.collected) {
-                    const dx = player.x - rupee.x;
-                    const dy = player.y - rupee.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (distance < 30) {
-                        collectRupee(index, rupeeElement);
-                    }
-                }
-            });
-            
-            // Chaves
-            const keyElements = document.querySelectorAll('.key');
-            keyElements.forEach(keyElement => {
-                const index = parseInt(keyElement.dataset.index);
-                const key = gameState.keysItems[index];
-                
-                if (!key.collected) {
-                    const dx = player.x - key.x;
-                    const dy = player.y - key.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (distance < 30) {
-                        collectKey(index, keyElement);
-                    }
-                }
-            });
-        }
-
-        // 🏦 Verifica baús
-        function checkChests() {
-            const player = gameState.player;
-            const chestElements = document.querySelectorAll('.chest');
-            
-            chestElements.forEach(chestElement => {
-                const index = parseInt(chestElement.dataset.index);
-                const chest = gameState.chests[index];
-                
-                if (!chest.opened) {
-                    const dx = player.x - chest.x;
-                    const dy = player.y - chest.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (distance < 40) {
-                        if (chest.locked && player.keys > 0) {
-                            openChest(index, chestElement);
-                        } else if (!chest.locked) {
-                            openChest(index, chestElement);
-                        }
-                    }
-                }
-            });
-        }
-
-        // 💎 Coleta uma rupee
-        function collectRupee(index, element) {
-            gameState.rupees[index].collected = true;
-            gameState.player.rupees += 1;
-            
-            element.style.transition = 'all 0.5s';
-            element.style.transform = 'scale(2)';
-            element.style.opacity = '0';
-            createParticles(gameState.rupees[index].x, gameState.rupees[index].y, 5, '#0088ff');
-            
-            playSound('rupeeSound');
-            
-            setTimeout(() => {
-                element.remove();
-                createRupee();
-            }, 500);
-            
-            updateHUD();
-        }
-
-        // 🔑 Coleta uma chave
-        function collectKey(index, element) {
-            gameState.keysItems[index].collected = true;
-            gameState.player.keys += 1;
-            
-            element.style.transition = 'all 0.5s';
-            element.style.transform = 'scale(2)';
-            element.style.opacity = '0';
-            createParticles(gameState.keysItems[index].x, gameState.keysItems[index].y, 5, '#ffff00');
-            
-            playSound('keySound');
-            
-            setTimeout(() => {
-                element.remove();
-            }, 500);
-            
-            updateHUD();
-            
-            if (gameState.player.keys === 1) {
-                showDialog("Você encontrou uma chave mágica! Talvez ela possa abrir algum baú ou porta especial...");
-            }
-        }
-
-        // 🏦 Abre um baú
-        function openChest(index, element) {
-            const chest = gameState.chests[index];
-            
-            if (chest.locked && gameState.player.keys > 0) {
-                gameState.player.keys -= 1;
-                chest.locked = false;
-                element.classList.remove('locked');
-                updateHUD();
-            }
-            
-            if (!chest.opened) {
-                chest.opened = true;
-                element.style.transition = 'all 0.5s';
-                element.style.transform = 'scale(1.2)';
-                
-                playSound('chestSound');
-                createParticles(chest.x, chest.y, 15, '#daa520');
-                
-                // Recompensa aleatória
-                const reward = Math.random();
-                if (reward < 0.3) {
-                    // Coração
-                    if (gameState.player.health < gameState.player.maxHealth) {
-                        gameState.player.health = Math.min(gameState.player.maxHealth, gameState.player.health + 1);
-                        showDialog("Você encontrou um coração no baú! Vida restaurada.");
-                    } else {
-                        gameState.player.rupees += 10;
-                        showDialog("Você encontrou 10 rupees no baú!");
-                    }
-                } else if (reward < 0.6) {
-                    // Rupees
-                    const rupees = 5 + Math.floor(Math.random() * 10);
-                    gameState.player.rupees += rupees;
-                    showDialog(`Você encontrou ${rupees} rupees no baú!`);
-                } else {
-                    // Escudo
-                    if (!gameState.player.hasShield) {
-                        gameState.player.hasShield = true;
-                        showDialog("Você encontrou um escudo no baú! Agora você tem 50% de chance de bloquear ataques.");
-                    } else {
-                        gameState.player.rupees += 15;
-                        showDialog("Você encontrou 15 rupees no baú!");
-                    }
-                }
-                
-                updateHUD();
-                
-                setTimeout(() => {
-                    element.style.transform = 'scale(1)';
-                }, 500);
-            }
-        }
-
-        // 🩹 Dano ao jogador
-        function takeDamage(amount) {
-            const now = Date.now();
-            if (now - gameState.player.lastAttack < 1000) return;
-            
-            // Chance de bloquear com escudo
-            if (gameState.player.hasShield && Math.random() < 0.5) {
-                createParticles(gameState.player.x, gameState.player.y, 10, '#4169e1');
-                return;
-            }
-            
-            gameState.player.health -= amount;
-            
-            const damageEffect = document.createElement('div');
-            damageEffect.className = 'damage-effect';
-            document.getElementById('game-container').appendChild(damageEffect);
-            
-            damageEffect.style.animation = 'damageFlash 0.5s';
-            setTimeout(() => damageEffect.remove(), 500);
-            
-            playSound('damageSound');
-            updateHUD();
-            
-            if (gameState.player.health <= 0) {
-                gameOver();
-            }
-        }
-
-        // ☠️ Game over
-        function gameOver() {
-            showDialog("Você foi derrotado... Mas a lenda nunca termina! Tente novamente.");
-            setTimeout(() => {
-                restartGame();
             }, 3000);
         }
 
-        // 🎮 Atualiza o HUD
-        function updateHUD() {
-            const heartsContainer = document.querySelector('.hearts');
-            heartsContainer.innerHTML = '';
-            
-            for (let i = 0; i < gameState.player.maxHealth; i++) {
-                const heart = document.createElement('span');
-                heart.className = 'heart';
-                if (i >= gameState.player.health) {
-                    heart.style.opacity = '0.3';
-                }
-                heartsContainer.appendChild(heart);
-            }
-            
-            document.querySelector('.rupees').innerHTML = `${gameState.player.rupees} <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEyLDIwQTgsOCAwIDAsMSA0LDEyQTgsOCAwIDAsMSAxMiw0QTgsOCAwIDAsMSAyMCwxMkE4LDggMCAwLDEgMTIsMjBNMTIsMkExMCwxMCAwIDAsMCAyLDEyQTEwLDEwIDAgMCwwIDEyLDIyQTEwLDEwIDAgMCwwIDIyLDEyQTEwLTEwIDAgMCwwIDEyLDIiIGZpbGw9IiMwMDg4ZmYiLz48L3N2Zz4=" alt="Rupee">`;
-            
-            document.querySelector('.keys').innerHTML = `${gameState.player.keys} <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTcsMTdBMiwyIDAgMCwwIDksMTlIMjlBMiwyIDAgMCwwIDIxLDE3VjEzSDlBMiwyIDAgMCwwIDcsMTFWOUgxOVY3SDlBMiwyIDAgMCwwIDcsOVY3QTIsMiAwIDAsMCA5LDVIMjlBMiwyIDAgMCwwIDIxLDdWMTdNOSw5SDIxVjExSDlWOU0xNSwxM1YxNUgxN1YxM0gxNVoiIGZpbGw9IiNmZmZmMDAiLz48L3N2Zz4=" alt="Key">`;
-            
-            // Salva o jogo automaticamente quando o HUD é atualizado
-            saveGame();
-        }
+        // Inicia tudo quando a página carrega
+        window.onload = function() {
+            createStars();
+            startDialogue();
+        };
 
-        // 💬 Mostra diálogo
-        function showDialog(text) {
-            gameState.inDialog = true;
-            const dialogBox = document.getElementById('dialog-box');
-            dialogBox.querySelector('.dialog-content').textContent = text;
-            dialogBox.style.display = 'block';
-            setTimeout(() => dialogBox.style.opacity = '1', 10);
-        }
-
-        // ❌ Fecha diálogo
-        function closeDialog() {
-            gameState.inDialog = false;
-            const dialogBox = document.getElementById('dialog-box');
-            dialogBox.style.opacity = '0';
-            setTimeout(() => dialogBox.style.display = 'none', 500);
-        }
-
-        // 👾 Cria um inimigo
-        function createEnemy() {
-            const gameMap = document.getElementById('game-map');
-            const player = gameState.player;
-            
-            let x, y;
-            do {
-                x = Math.random() * (config.mapWidth - 100) + 50;
-                y = Math.random() * (config.mapHeight - 100) + 50;
-            } while (Math.abs(x - player.x) < 200 && Math.abs(y - player.y) < 200);
-            
-            const enemy = {
-                x,
-                y,
-                speedX: Math.random() * 2 - 1,
-                speedY: Math.random() * 2 - 1,
-                health: config.enemyHealth
-            };
-            
-            gameState.enemies.push(enemy);
-            
-            const enemyElement = document.createElement('div');
-            enemyElement.className = 'enemy';
-            enemyElement.style.left = `${enemy.x - 24}px`;
-            enemyElement.style.top = `${enemy.y - 24}px`;
-            gameMap.appendChild(enemyElement);
-        }
-
-        // 👑 Cria um chefe
-        function createBoss() {
-            const gameMap = document.getElementById('game-map');
-            const player = gameState.player;
-            
-            let x, y;
-            do {
-                x = Math.random() * (config.mapWidth - 200) + 100;
-                y = Math.random() * (config.mapHeight - 200) + 100;
-            } while (Math.abs(x - player.x) < 300 && Math.abs(y - player.y) < 300);
-            
-            const boss = {
-                x,
-                y,
-                speedX: Math.random() * 2 - 1,
-                speedY: Math.random() * 2 - 1,
-                health: config.bossHealth
-            };
-            
-            gameState.bosses.push(boss);
-            
-            const bossElement = document.createElement('div');
-            bossElement.className = 'boss';
-            bossElement.style.left = `${boss.x - 36}px`;
-            bossElement.style.top = `${boss.y - 36}px`;
-            gameMap.appendChild(bossElement);
-        }
-
-        // ☠️ Remove um inimigo
-        function removeEnemy(index) {
-            const enemyElement = document.querySelectorAll('.enemy')[index];
-            enemyElement.style.transition = 'all 0.5s';
-            enemyElement.style.transform = 'scale(0)';
-            enemyElement.style.opacity = '0';
-            
-            setTimeout(() => {
-                enemyElement.remove();
-                gameState.enemies.splice(index, 1);
-            }, 500);
-        }
-
-        // 👑 Remove um chefe
-        function removeBoss(index) {
-            const bossElement = document.querySelectorAll('.boss')[index];
-            bossElement.style.transition = 'all 0.5s';
-            bossElement.style.transform = 'scale(0)';
-            bossElement.style.opacity = '0';
-            
-            setTimeout(() => {
-                bossElement.remove();
-                gameState.bosses.splice(index, 1);
-            }, 500);
-        }
-
-        // ✨ Cria partículas de efeito
-        function createParticles(x, y, count, color) {
-            const particlesContainer = document.getElementById('particles');
-            
-            for (let i = 0; i < count; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                particle.style.left = `${x}px`;
-                particle.style.top = `${y}px`;
-                particle.style.backgroundColor = color;
-                particle.style.width = `${5 + Math.random() * 10}px`;
-                particle.style.height = particle.style.width;
-                particle.style.borderRadius = '50%';
-                particle.style.position = 'absolute';
-                particle.style.opacity = '0.8';
-                
-                const angle = Math.random() * Math.PI * 2;
-                const speed = 1 + Math.random() * 3;
-                const lifetime = 500 + Math.random() * 1000;
-                
-                particlesContainer.appendChild(particle);
-                
-                const startTime = Date.now();
-                
-                function updateParticle() {
-                    const elapsed = Date.now() - startTime;
-                    const progress = elapsed / lifetime;
-                    
-                    if (progress >= 1) {
-                        particle.remove();
-                        return;
-                    }
-                    
-                    particle.style.transform = `translate(${Math.cos(angle) * speed * elapsed/10}px, ${Math.sin(angle) * speed * elapsed/10}px)`;
-                    particle.style.opacity = `${0.8 * (1 - progress)}`;
-                    
-                    requestAnimationFrame(updateParticle);
-                }
-                
-                updateParticle();
-            }
-        }
-
-        // 🛠️ Utilitários
-        function checkCollision(rect1, rect2) {
-            return (
-                rect1.x < rect2.x + rect2.width &&
-                rect1.x + rect1.width > rect2.x &&
-                rect1.y < rect2.y + rect2.height &&
-                rect1.y + rect1.height > rect2.y
-            );
-        }
-
-        // ⚡ Inicia quando o DOM estiver pronto
-        document.addEventListener('DOMContentLoaded', () => {
-            setTimeout(() => initGame(), 100);
+        // Botão de início
+        document.getElementById('start-button').addEventListener('click', () => {
+            alert("🚀 REALIDADE QUÂNTICA INICIADA! PREPARE-SE PARA A AÇÃO!");
+            // Aqui você pode redirecionar para o jogo principal
         });
     </script>
 </body>
