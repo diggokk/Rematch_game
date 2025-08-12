@@ -3,132 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Universo de Partículas PRO Turbo</title>
+    <title>UNIVERSO DE PARTÍCULAS PRO TURBO</title>
     <style>
-        /* Reset & Base */
-        body, html {
+        /* RESET & BASE */
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&display=swap');
+        
+        :root {
+            --neon-blue: #00f7ff;
+            --neon-purple: #b300ff;
+            --deep-space: #00081d;
+        }
+        
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
             overflow: hidden;
-            height: 100%;
+            height: 100vh;
             font-family: 'Orbitron', sans-serif;
             background: #000;
-            color: #fff;
+            color: white;
+            perspective: 1000px;
         }
 
-        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
-
-        /* Fundo Cósmico */
+        /* UNIVERSO 3D */
         #universe {
             position: fixed;
             width: 100%;
             height: 100%;
-            z-index: 0;
+            z-index: -1;
+            transform-style: preserve-3d;
         }
 
         .star {
             position: absolute;
-            background: #fff;
+            background: white;
             border-radius: 50%;
             opacity: 0;
-            animation: twinkle 5s infinite;
+            transform: translateZ(-500px);
+            animation: star-twinkle 8s infinite;
         }
 
-        @keyframes twinkle {
-            0%, 100% { opacity: 0; transform: scale(0.5); }
-            50% { opacity: 1; transform: scale(1); }
+        @keyframes star-twinkle {
+            0%, 100% { opacity: 0.1; transform: translateZ(-500px) scale(0.3); }
+            50% { opacity: 1; transform: translateZ(0) scale(1.2); }
         }
 
-        /* Container Principal */
-        #intro-container {
+        /* INTRO CINEMÁTICA */
+        #intro-sequence {
             position: relative;
             height: 100vh;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            text-align: center;
-            z-index: 10;
-            padding: 20px;
-        }
-
-        /* Título do Jogo */
-        #game-title {
-            font-size: 4.5rem;
-            font-weight: 700;
-            margin-bottom: 2rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5rem;
-            text-shadow: 0 0 20px #00f7ff, 0 0 40px #0066ff;
-            opacity: 0;
-            transform: translateY(50px);
-            animation: fadeIn 2s forwards 1s;
-        }
-
-        @keyframes fadeIn {
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Diálogo Misterioso */
-        #dialogue-box {
-            max-width: 700px;
-            margin: 0 auto;
-            padding: 2rem;
-            background: rgba(0, 20, 40, 0.7);
-            border: 1px solid rgba(0, 255, 255, 0.3);
-            border-radius: 5px;
-            backdrop-filter: blur(10px);
-            opacity: 0;
-            animation: fadeIn 1.5s forwards 2.5s;
-        }
-
-        .dialogue-line {
-            font-size: 1.5rem;
-            line-height: 1.6;
-            margin: 1rem 0;
-            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
-            position: relative;
-        }
-
-        .dialogue-line::after {
-            content: "▋";
-            position: absolute;
-            right: -15px;
-            animation: blink 0.7s infinite;
-        }
-
-        @keyframes blink {
-            0%, 100% { opacity: 0; }
-            50% { opacity: 1; }
-        }
-
-        /* Botão de Início */
-        #start-btn {
-            margin-top: 3rem;
-            padding: 1rem 3rem;
-            background: transparent;
-            border: 2px solid #00f7ff;
-            color: #00f7ff;
-            font-size: 1.5rem;
-            font-family: 'Orbitron', sans-serif;
-            text-transform: uppercase;
-            letter-spacing: 0.2rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            opacity: 0;
-            animation: fadeIn 1s forwards 6s;
-            position: relative;
             overflow: hidden;
         }
 
-        #start-btn:hover {
-            background: rgba(0, 247, 255, 0.1);
-            text-shadow: 0 0 10px #00f7ff;
-            box-shadow: 0 0 20px #00f7ff;
+        /* TÍTULO EPIC */
+        #title-container {
+            position: relative;
+            text-align: center;
+            margin-bottom: 5rem;
+            transform: translateY(50px);
+            opacity: 0;
+            animation: title-entry 3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        @keyframes title-entry {
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        #main-title {
+            font-size: 6rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 1rem;
+            color: transparent;
+            background: linear-gradient(90deg, var(--neon-blue), var(--neon-purple));
+            -webkit-background-clip: text;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(179, 0, 255, 0.5);
+            margin-bottom: 1rem;
+        }
+
+        #subtitle {
+            font-size: 1.5rem;
+            letter-spacing: 0.5rem;
+            color: var(--neon-blue);
+            opacity: 0;
+            animation: subtitle-fade 2s ease-out 2s forwards;
+        }
+
+        @keyframes subtitle-fade {
+            to { opacity: 0.8; }
+        }
+
+        /* NARRAÇÃO IMERSIVA */
+        #narration {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            background: rgba(0, 8, 29, 0.7);
+            border-left: 3px solid var(--neon-blue);
+            clip-path: polygon(0 0, 100% 0, 95% 100%, 5% 100%);
+            opacity: 0;
+            transform: translateX(-50px);
+            animation: narration-entry 2s ease-out 3s forwards;
+        }
+
+        @keyframes narration-entry {
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .narration-line {
+            font-size: 1.8rem;
+            line-height: 1.6;
+            margin: 1.5rem 0;
+            text-shadow: 0 0 15px rgba(0, 247, 255, 0.3);
+            position: relative;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .narration-line.active {
+            animation: line-focus 0.8s ease-out forwards;
+        }
+
+        @keyframes line-focus {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* BOTÃO QUÂNTICO */
+        #start-btn {
+            margin-top: 4rem;
+            padding: 1.5rem 4rem;
+            background: transparent;
+            border: 2px solid var(--neon-blue);
+            color: var(--neon-blue);
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: 0.3rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: scale(0.8);
+            animation: btn-appear 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 8s forwards;
+            z-index: 10;
+        }
+
+        @keyframes btn-appear {
+            to { opacity: 1; transform: scale(1); }
         }
 
         #start-btn::before {
-            content: "";
+            content: '';
             position: absolute;
             top: 0;
             left: -100%;
@@ -138,135 +173,162 @@
             transition: 0.5s;
         }
 
+        #start-btn:hover {
+            background: rgba(0, 247, 255, 0.1);
+            text-shadow: 0 0 15px var(--neon-blue);
+            box-shadow: 0 0 30px var(--neon-blue);
+        }
+
         #start-btn:hover::before {
             left: 100%;
         }
 
-        /* Efeitos Especiais */
-        .particle {
+        /* EFEITOS ESPECIAIS */
+        .quantum-particle {
             position: absolute;
-            background: #00f7ff;
+            background: radial-gradient(circle, var(--neon-blue), transparent 70%);
             border-radius: 50%;
             pointer-events: none;
             z-index: -1;
+            filter: blur(1px);
         }
 
-        /* Responsivo */
+        /* ANIMAÇÃO DE CAMERA */
+        @keyframes camera-pan {
+            0% { transform: translateZ(0); }
+            100% { transform: translateZ(500px); }
+        }
+
+        /* RESPONSIVO */
         @media (max-width: 768px) {
-            #game-title {
-                font-size: 2.5rem;
+            #main-title {
+                font-size: 3rem;
+                letter-spacing: 0.5rem;
             }
             
-            .dialogue-line {
-                font-size: 1.1rem;
+            .narration-line {
+                font-size: 1.2rem;
+            }
+            
+            #start-btn {
+                padding: 1rem 2rem;
+                font-size: 1rem;
             }
         }
     </style>
 </head>
 <body>
-    <!-- Fundo Cósmico -->
+    <!-- UNIVERSO 3D -->
     <div id="universe"></div>
 
-    <!-- Conteúdo Principal -->
-    <div id="intro-container">
-        <h1 id="game-title">universo de partículas<span style="color: #00f7ff;">_</span></h1>
-        
-        <div id="dialogue-box">
-            <p class="dialogue-line">[Sinal de entrada: ativo]</p>
-            <p class="dialogue-line">Você está ouvindo? O tecido do universo se desfaz...</p>
-            <p class="dialogue-line">Eles disseram que era impossível controlar a fragmentação quântica.</p>
-            <p class="dialogue-line">Mas você... você é diferente.</p>
-            <p class="dialogue-line" style="color: #00f7ff; font-weight: bold;">Prepare-se. As partículas aguardam seu comando.</p>
+    <!-- SEQUÊNCIA CINEMÁTICA -->
+    <div id="intro-sequence">
+        <div id="title-container">
+            <h1 id="main-title">universo</h1>
+            <h2 id="subtitle">de partículas pro turbo</h2>
         </div>
 
-        <button id="start-btn">Iniciar Simulação</button>
+        <div id="narration">
+            <p class="narration-line" data-delay="4000">[SINAL CÓSMICO ESTABILIZADO]</p>
+            <p class="narration-line" data-delay="5500">O tecido da realidade está se desfazendo...</p>
+            <p class="narration-line" data-delay="7000">Você é o último operador quântico.</p>
+            <p class="narration-line" data-delay="8500" style="color: var(--neon-purple); font-weight: 700;">As partículas respondem ao seu comando.</p>
+            <p class="narration-line" data-delay="10000">Prepare-se.</p>
+        </div>
+
+        <button id="start-btn">Iniciar Experimento</button>
     </div>
 
     <script>
-        // Criação das estrelas
-        function createStars() {
+        // CRIAR UNIVERSO 3D
+        function createUniverse() {
             const universe = document.getElementById('universe');
-            const starCount = 200;
+            const starCount = 300;
             
             for (let i = 0; i < starCount; i++) {
                 const star = document.createElement('div');
                 star.className = 'star';
                 
                 // Tamanho aleatório
-                const size = Math.random() * 3;
+                const size = Math.random() * 4 + 1;
                 star.style.width = `${size}px`;
                 star.style.height = `${size}px`;
                 
-                // Posição aleatória
-                star.style.left = `${Math.random() * 100}%`;
-                star.style.top = `${Math.random() * 100}%`;
+                // Posição 3D aleatória
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                const posZ = Math.random() * 1000 - 500;
+                
+                star.style.left = `${posX}%`;
+                star.style.top = `${posY}%`;
+                star.style.transform = `translateZ(${posZ}px)`;
                 
                 // Atraso de animação
-                star.style.animationDelay = `${Math.random() * 5}s`;
+                star.style.animationDelay = `${Math.random() * 8}s`;
                 
                 universe.appendChild(star);
             }
         }
 
-        // Efeito de partículas flutuantes
-        function createParticles() {
-            const container = document.getElementById('intro-container');
-            const particleCount = 30;
+        // PARTÍCULAS QUÂNTICAS
+        function createQuantumParticles() {
+            const container = document.getElementById('intro-sequence');
+            const particleCount = 15;
             
             for (let i = 0; i < particleCount; i++) {
                 const particle = document.createElement('div');
-                particle.className = 'particle';
+                particle.className = 'quantum-particle';
                 
                 // Tamanho e posição
-                const size = Math.random() * 5 + 1;
+                const size = Math.random() * 200 + 100;
                 particle.style.width = `${size}px`;
                 particle.style.height = `${size}px`;
                 particle.style.left = `${Math.random() * 100}%`;
                 particle.style.top = `${Math.random() * 100}%`;
                 
-                // Animação
-                const duration = Math.random() * 20 + 10;
-                particle.style.animation = `float ${duration}s infinite linear`;
+                // Animação única
+                const duration = Math.random() * 30 + 20;
+                const xMove = Math.random() * 200 - 100;
+                const yMove = Math.random() * 200 - 100;
                 
-                // Opacidade
-                particle.style.opacity = Math.random() * 0.5 + 0.1;
+                particle.style.animation = `
+                    quantum-float ${duration}s infinite ease-in-out
+                `;
                 
-                // Keyframes dinâmicos
-                const keyframes = `
-                    @keyframes float {
-                        0% {
+                // Criar keyframes dinâmicos
+                const style = document.createElement('style');
+                style.innerHTML = `
+                    @keyframes quantum-float {
+                        0%, 100% {
                             transform: translate(0, 0);
-                            opacity: ${Math.random() * 0.5 + 0.1};
-                        }
-                        100% {
-                            transform: translate(${Math.random() * 200 - 100}px, ${Math.random() * 200 - 100}px);
                             opacity: 0;
+                        }
+                        50% {
+                            transform: translate(${xMove}px, ${yMove}px);
+                            opacity: ${Math.random() * 0.3 + 0.1};
                         }
                     }
                 `;
                 
-                const style = document.createElement('style');
-                style.innerHTML = keyframes;
                 document.head.appendChild(style);
-                
                 container.appendChild(particle);
             }
         }
 
-        // Inicia tudo quando a página carrega
-        window.onload = function() {
-            createStars();
-            createParticles();
+        // NARRAÇÃO DINÂMICA
+        function startNarration() {
+            const lines = document.querySelectorAll('.narration-line');
             
-            // Efeito de digitação
-            const dialogueLines = document.querySelectorAll('.dialogue-line');
-            let delay = 3500; // Começa após o título aparecer
-            
-            dialogueLines.forEach((line, index) => {
-                const text = line.textContent.replace('▋', '');
-                line.textContent = '';
+            lines.forEach(line => {
+                const delay = parseInt(line.getAttribute('data-delay'));
                 
                 setTimeout(() => {
+                    line.classList.add('active');
+                    
+                    // Efeito de digitação
+                    const text = line.textContent;
+                    line.textContent = '';
+                    
                     let i = 0;
                     const typing = setInterval(() => {
                         if (i < text.length) {
@@ -274,26 +336,78 @@
                             i++;
                         } else {
                             clearInterval(typing);
-                            line.style.animation = 'none';
-                            line.querySelector('::after')?.remove();
                         }
                     }, 50);
                 }, delay);
+            });
+        }
+
+        // EFEITO DE CAMERA
+        function cameraEffect() {
+            const universe = document.getElementById('universe');
+            let scale = 1;
+            
+            const interval = setInterval(() => {
+                scale += 0.002;
+                universe.style.transform = `scale(${scale})`;
                 
-                delay += text.length * 50 + 1000; // Tempo entre linhas
+                if (scale >= 1.2) {
+                    clearInterval(interval);
+                }
+            }, 50);
+        }
+
+        // INICIAR TUDO
+        window.onload = function() {
+            createUniverse();
+            createQuantumParticles();
+            startNarration();
+            
+            // Iniciar efeito de câmera após 5 segundos
+            setTimeout(cameraEffect, 5000);
+            
+            // Efeito de hover nas partículas
+            document.addEventListener('mousemove', (e) => {
+                const particles = document.querySelectorAll('.quantum-particle');
+                
+                particles.forEach(particle => {
+                    const x = e.clientX;
+                    const y = e.clientY;
+                    const rect = particle.getBoundingClientRect();
+                    const particleX = rect.left + rect.width / 2;
+                    const particleY = rect.top + rect.height / 2;
+                    
+                    const distance = Math.sqrt(
+                        Math.pow(x - particleX, 2) + 
+                        Math.pow(y - particleY, 2)
+                    );
+                    
+                    if (distance < 200) {
+                        particle.style.transform = `translate(${x - particleX}px, ${y - particleY}px)`;
+                    }
+                });
             });
         };
 
-        // Botão de início
+        // BOTÃO DE INÍCIO
         document.getElementById('start-btn').addEventListener('click', () => {
             // Efeito de transição
-            document.body.style.animation = 'fadeOut 1s forwards';
+            document.body.style.animation = 'fade-to-white 1.5s forwards';
+            
+            // Criar keyframes dinâmicos
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @keyframes fade-to-white {
+                    to { background: white; opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
             
             setTimeout(() => {
-                alert("🚀 SIMULAÇÃO INICIADA! PREPARE-SE PARA O CONTROLE QUÂNTICO!");
-                // Aqui você redirecionaria para o jogo principal
-                // window.location.href = "jogo.html";
-            }, 1000);
+                alert("⚛️ EXPERIMENTO QUÂNTICO INICIADO! CONTROLE AS PARTÍCULAS!");
+                // Redirecionar para o jogo principal
+                // window.location.href = "game.html";
+            }, 1500);
         });
     </script>
 </body>
