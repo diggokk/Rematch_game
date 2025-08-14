@@ -1,27 +1,699 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Futebol Cartunesco - Valorant Style</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Galactic Soccer Revolution</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #000;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+        
+        #gameCanvas {
+            display: block;
+            background: radial-gradient(ellipse at center, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+        
+        #uiOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .score {
+            position: absolute;
+            top: 20px;
+            font-size: 3em;
+            color: white;
+            text-shadow: 0 0 10px rgba(255,255,255,0.7);
+        }
+        
+        #player1Score {
+            left: 30%;
+        }
+        
+        #player2Score {
+            right: 30%;
+        }
+        
+        #timer {
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            position: absolute;
+            font-size: 2em;
+            color: #00fffc;
+        }
+        
+        #powerUpIndicator {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #ff00aa;
+            font-size: 1.5em;
+            text-shadow: 0 0 10px #ff00aa;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        #startScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 100;
+        }
+        
+        #startButton {
+            margin-top: 30px;
+            padding: 15px 30px;
+            font-size: 1.5em;
+            background: linear-gradient(45deg, #00fffc, #0088ff);
+            border: none;
+            border-radius: 50px;
+            color: white;
+            cursor: pointer;
+            pointer-events: auto;
+            box-shadow: 0 0 20px rgba(0, 255, 252, 0.5);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        #startButton:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 30px rgba(0, 255, 252, 0.8);
+        }
+        
+        h1 {
+            font-size: 4em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #00fffc, #0088ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px rgba(0, 255, 252, 0.3);
+        }
+        
+        .instructions {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 1.2em;
+            color: #aaa;
+        }
+    </style>
 </head>
 <body>
-    <!-- Menu Principal -->
-    <div id="main-menu">
-        <h1>FUTEBOL CARTUNESCO</h1>
-        <div class="menu-buttons">
-            <button onclick="startGame('futuristic')">CAMPO FUTURISTA</button>
-            <button onclick="startGame('amazon')">CAMPO AMAZÔNICO</button>
-            <button onclick="startGame('classic')">CAMPO CLÁSSICO</button>
+    <div id="gameContainer">
+        <canvas id="gameCanvas"></canvas>
+        
+        <div id="uiOverlay">
+            <div id="player1Score" class="score">0</div>
+            <div id="player2Score" class="score">0</div>
+            <div id="timer">3:00</div>
+            <div id="powerUpIndicator">GRAVIDADE REVERSIDA ATIVADA!</div>
+        </div>
+        
+        <div id="startScreen">
+            <h1>GALACTIC SOCCER REVOLUTION</h1>
+            <p class="instructions">O jogo de futebol intergaláctico do futuro!</p>
+            <p class="instructions">Jogador 1: WASD para mover, Q para habilidade especial</p>
+            <p class="instructions">Jogador 2: Setas para mover, M para habilidade especial</p>
+            <button id="startButton">INICIAR PARTIDA</button>
         </div>
     </div>
 
-    <!-- Jogo -->
-    <div id="game-container" style="display: none;">
-        <canvas id="game-canvas"></canvas>
-    </div>
-
-    <script src="script.js"></script>
+    <script>
+        // Configurações do jogo
+        const config = {
+            width: window.innerWidth,
+            height: window.innerHeight,
+            fieldColor: '#1a3a1a',
+            fieldLineColor: '#ffffff',
+            player1Color: '#00fffc',
+            player2Color: '#ff00aa',
+            ballColor: '#ffffff',
+            gravity: 0.2,
+            playerSpeed: 5,
+            playerRadius: 30,
+            ballRadius: 20,
+            powerUpDuration: 10000, // 10 segundos
+            matchDuration: 180000 // 3 minutos
+        };
+        
+        // Estado do jogo
+        const gameState = {
+            players: [
+                { x: 0, y: 0, dx: 0, dy: 0, score: 0, powerUp: null, powerUpEndTime: 0, color: config.player1Color },
+                { x: 0, y: 0, dx: 0, dy: 0, score: 0, powerUp: null, powerUpEndTime: 0, color: config.player2Color }
+            ],
+            ball: { x: 0, y: 0, dx: 0, dy: 0, radius: config.ballRadius },
+            powerUps: [],
+            lastPowerUpTime: 0,
+            powerUpInterval: 15000, // 15 segundos
+            matchStartTime: 0,
+            isPlaying: false,
+            keys: {}
+        };
+        
+        // Elementos do DOM
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const player1Score = document.getElementById('player1Score');
+        const player2Score = document.getElementById('player2Score');
+        const timer = document.getElementById('timer');
+        const powerUpIndicator = document.getElementById('powerUpIndicator');
+        const startScreen = document.getElementById('startScreen');
+        const startButton = document.getElementById('startButton');
+        
+        // Inicialização do jogo
+        function initGame() {
+            resizeCanvas();
+            resetPositions();
+            
+            // Event listeners
+            window.addEventListener('resize', resizeCanvas);
+            window.addEventListener('keydown', handleKeyDown);
+            window.addEventListener('keyup', handleKeyUp);
+            startButton.addEventListener('click', startGame);
+            
+            // Iniciar loop do jogo
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function resizeCanvas() {
+            config.width = window.innerWidth;
+            config.height = window.innerHeight;
+            canvas.width = config.width;
+            canvas.height = config.height;
+            
+            if (!gameState.isPlaying) {
+                resetPositions();
+            }
+        }
+        
+        function resetPositions() {
+            // Posicionar jogadores
+            gameState.players[0].x = config.width * 0.25;
+            gameState.players[0].y = config.height / 2;
+            gameState.players[1].x = config.width * 0.75;
+            gameState.players[1].y = config.height / 2;
+            
+            // Posicionar bola no centro
+            gameState.ball.x = config.width / 2;
+            gameState.ball.y = config.height / 2;
+            gameState.ball.dx = 0;
+            gameState.ball.dy = 0;
+            
+            // Resetar power-ups
+            gameState.powerUps = [];
+            gameState.lastPowerUpTime = 0;
+        }
+        
+        function startGame() {
+            gameState.isPlaying = true;
+            gameState.matchStartTime = Date.now();
+            gameState.players[0].score = 0;
+            gameState.players[1].score = 0;
+            resetPositions();
+            startScreen.style.display = 'none';
+            updateScore();
+        }
+        
+        function handleKeyDown(e) {
+            gameState.keys[e.key] = true;
+            
+            // Habilidades especiais
+            if (gameState.isPlaying) {
+                if (e.key === 'q' && !gameState.players[0].powerUp) {
+                    activatePowerUp(0, 'gravityReverse');
+                }
+                
+                if (e.key === 'm' && !gameState.players[1].powerUp) {
+                    activatePowerUp(1, 'superSpeed');
+                }
+            }
+        }
+        
+        function handleKeyUp(e) {
+            gameState.keys[e.key] = false;
+        }
+        
+        function activatePowerUp(playerIndex, type) {
+            const player = gameState.players[playerIndex];
+            player.powerUp = type;
+            player.powerUpEndTime = Date.now() + config.powerUpDuration;
+            
+            // Efeito visual
+            powerUpIndicator.style.opacity = '1';
+            powerUpIndicator.textContent = type === 'gravityReverse' 
+                ? 'GRAVIDADE REVERSIDA ATIVADA!' 
+                : 'SUPER VELOCIDADE ATIVADA!';
+            
+            setTimeout(() => {
+                powerUpIndicator.style.opacity = '0';
+            }, 2000);
+        }
+        
+        function updatePowerUps() {
+            const now = Date.now();
+            
+            // Verificar power-ups expirados
+            gameState.players.forEach(player => {
+                if (player.powerUp && now > player.powerUpEndTime) {
+                    player.powerUp = null;
+                }
+            });
+            
+            // Gerar novos power-ups
+            if (now - gameState.lastPowerUpTime > gameState.powerUpInterval) {
+                spawnPowerUp();
+                gameState.lastPowerUpTime = now;
+            }
+            
+            // Verificar colisão com power-ups
+            gameState.powerUps = gameState.powerUps.filter(powerUp => {
+                const distanceToBall = Math.sqrt(
+                    Math.pow(gameState.ball.x - powerUp.x, 2) + 
+                    Math.pow(gameState.ball.y - powerUp.y, 2)
+                );
+                
+                if (distanceToBall < config.ballRadius + powerUp.radius) {
+                    // Ativar power-up aleatório para o jogador mais próximo
+                    const playerIndex = gameState.ball.x < config.width / 2 ? 0 : 1;
+                    const types = ['gravityReverse', 'superSpeed'];
+                    const randomType = types[Math.floor(Math.random() * types.length)];
+                    
+                    if (!gameState.players[playerIndex].powerUp) {
+                        activatePowerUp(playerIndex, randomType);
+                    }
+                    
+                    return false;
+                }
+                
+                return true;
+            });
+        }
+        
+        function spawnPowerUp() {
+            const types = ['gravityReverse', 'superSpeed'];
+            const type = types[Math.floor(Math.random() * types.length)];
+            
+            gameState.powerUps.push({
+                x: Math.random() * (config.width - 200) + 100,
+                y: Math.random() * (config.height - 200) + 100,
+                radius: 15,
+                type: type
+            });
+        }
+        
+        function updatePlayers() {
+            gameState.players.forEach((player, index) => {
+                // Controles do jogador 1 (WASD)
+                if (index === 0) {
+                    player.dx = 0;
+                    player.dy = 0;
+                    
+                    if (gameState.keys['w'] || gameState.keys['W']) player.dy = -config.playerSpeed;
+                    if (gameState.keys['s'] || gameState.keys['S']) player.dy = config.playerSpeed;
+                    if (gameState.keys['a'] || gameState.keys['A']) player.dx = -config.playerSpeed;
+                    if (gameState.keys['d'] || gameState.keys['D']) player.dx = config.playerSpeed;
+                }
+                
+                // Controles do jogador 2 (setas)
+                if (index === 1) {
+                    player.dx = 0;
+                    player.dy = 0;
+                    
+                    if (gameState.keys['ArrowUp']) player.dy = -config.playerSpeed;
+                    if (gameState.keys['ArrowDown']) player.dy = config.playerSpeed;
+                    if (gameState.keys['ArrowLeft']) player.dx = -config.playerSpeed;
+                    if (gameState.keys['ArrowRight']) player.dx = config.playerSpeed;
+                }
+                
+                // Aplicar super velocidade se tiver o power-up
+                if (player.powerUp === 'superSpeed') {
+                    player.dx *= 2;
+                    player.dy *= 2;
+                }
+                
+                // Atualizar posição
+                player.x += player.dx;
+                player.y += player.dy;
+                
+                // Manter dentro dos limites
+                player.x = Math.max(config.playerRadius, Math.min(config.width - config.playerRadius, player.x));
+                player.y = Math.max(config.playerRadius, Math.min(config.height - config.playerRadius, player.y));
+            });
+        }
+        
+        function updateBall() {
+            // Aplicar física da bola
+            gameState.ball.x += gameState.ball.dx;
+            gameState.ball.y += gameState.ball.dy;
+            
+            // Aplicar gravidade (ou reverso se tiver power-up)
+            const gravityMultiplier = gameState.players.some(p => p.powerUp === 'gravityReverse') ? -1 : 1;
+            gameState.ball.dy += config.gravity * gravityMultiplier;
+            
+            // Resistência do ar
+            gameState.ball.dx *= 0.99;
+            gameState.ball.dy *= 0.99;
+            
+            // Colisão com paredes
+            if (gameState.ball.x - gameState.ball.radius < 0) {
+                gameState.ball.x = gameState.ball.radius;
+                gameState.ball.dx = -gameState.ball.dx * 0.8;
+                scoreGoal(1);
+            }
+            
+            if (gameState.ball.x + gameState.ball.radius > config.width) {
+                gameState.ball.x = config.width - gameState.ball.radius;
+                gameState.ball.dx = -gameState.ball.dx * 0.8;
+                scoreGoal(0);
+            }
+            
+            if (gameState.ball.y - gameState.ball.radius < 0) {
+                gameState.ball.y = gameState.ball.radius;
+                gameState.ball.dy = -gameState.ball.dy * 0.8;
+            }
+            
+            if (gameState.ball.y + gameState.ball.radius > config.height) {
+                gameState.ball.y = config.height - gameState.ball.radius;
+                gameState.ball.dy = -gameState.ball.dy * 0.8;
+            }
+            
+            // Colisão com jogadores
+            gameState.players.forEach(player => {
+                const dx = gameState.ball.x - player.x;
+                const dy = gameState.ball.y - player.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < config.playerRadius + gameState.ball.radius) {
+                    // Calcular ângulo e força
+                    const angle = Math.atan2(dy, dx);
+                    const force = 10;
+                    
+                    // Rebater a bola
+                    gameState.ball.dx = Math.cos(angle) * force;
+                    gameState.ball.dy = Math.sin(angle) * force;
+                    
+                    // Adicionar velocidade do jogador
+                    gameState.ball.dx += player.dx * 0.5;
+                    gameState.ball.dy += player.dy * 0.5;
+                }
+            });
+        }
+        
+        function scoreGoal(playerIndex) {
+            gameState.players[playerIndex].score++;
+            updateScore();
+            resetPositions();
+        }
+        
+        function updateScore() {
+            player1Score.textContent = gameState.players[0].score;
+            player2Score.textContent = gameState.players[1].score;
+        }
+        
+        function updateTimer() {
+            if (!gameState.isPlaying) return;
+            
+            const elapsed = Date.now() - gameState.matchStartTime;
+            const remaining = Math.max(0, config.matchDuration - elapsed);
+            
+            const minutes = Math.floor(remaining / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+            
+            timer.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+            
+            if (remaining <= 0) {
+                endGame();
+            }
+        }
+        
+        function endGame() {
+            gameState.isPlaying = false;
+            
+            let winner = null;
+            if (gameState.players[0].score > gameState.players[1].score) {
+                winner = "Jogador 1 venceu!";
+            } else if (gameState.players[1].score > gameState.players[0].score) {
+                winner = "Jogador 2 venceu!";
+            } else {
+                winner = "Empate!";
+            }
+            
+            startScreen.innerHTML = `
+                <h1>FIM DE JOGO</h1>
+                <p class="instructions">${winner}</p>
+                <p class="instructions">Placar final: ${gameState.players[0].score} - ${gameState.players[1].score}</p>
+                <button id="startButton">JOGAR NOVAMENTE</button>
+            `;
+            
+            document.getElementById('startButton').addEventListener('click', startGame);
+            startScreen.style.display = 'flex';
+        }
+        
+        function render() {
+            // Limpar canvas
+            ctx.clearRect(0, 0, config.width, config.height);
+            
+            // Desenhar fundo estelar
+            drawStarfield();
+            
+            // Desenhar campo
+            drawField();
+            
+            // Desenhar power-ups
+            drawPowerUps();
+            
+            // Desenhar jogadores
+            drawPlayers();
+            
+            // Desenhar bola
+            drawBall();
+            
+            // Efeitos especiais
+            drawSpecialEffects();
+        }
+        
+        function drawStarfield() {
+            // Fundo estelar simples
+            ctx.fillStyle = '#ffffff';
+            for (let i = 0; i < 200; i++) {
+                const x = Math.random() * config.width;
+                const y = Math.random() * config.height;
+                const radius = Math.random() * 1.5;
+                ctx.beginPath();
+                ctx.arc(x, y, radius, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+        
+        function drawField() {
+            // Campo flutuante
+            const centerX = config.width / 2;
+            const centerY = config.height / 2;
+            const fieldWidth = config.width * 0.8;
+            const fieldHeight = config.height * 0.7;
+            
+            // Gradiente para o campo
+            const fieldGradient = ctx.createLinearGradient(0, 0, 0, config.height);
+            fieldGradient.addColorStop(0, '#1a3a1a');
+            fieldGradient.addColorStop(1, '#0a2a0a');
+            
+            ctx.fillStyle = fieldGradient;
+            ctx.shadowColor = 'rgba(0, 255, 252, 0.5)';
+            ctx.shadowBlur = 20;
+            ctx.beginPath();
+            ctx.roundRect(
+                centerX - fieldWidth / 2, 
+                centerY - fieldHeight / 2, 
+                fieldWidth, 
+                fieldHeight, 
+                20
+            );
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            
+            // Linhas do campo
+            ctx.strokeStyle = config.fieldLineColor;
+            ctx.lineWidth = 3;
+            
+            // Linha central
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY - fieldHeight / 2);
+            ctx.lineTo(centerX, centerY + fieldHeight / 2);
+            ctx.stroke();
+            
+            // Círculo central
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 50, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Áreas
+            const areaWidth = fieldWidth * 0.2;
+            const areaHeight = fieldHeight * 0.4;
+            
+            // Área esquerda
+            ctx.beginPath();
+            ctx.rect(
+                centerX - fieldWidth / 2, 
+                centerY - areaHeight / 2, 
+                areaWidth, 
+                areaHeight
+            );
+            ctx.stroke();
+            
+            // Área direita
+            ctx.beginPath();
+            ctx.rect(
+                centerX + fieldWidth / 2 - areaWidth, 
+                centerY - areaHeight / 2, 
+                areaWidth, 
+                areaHeight
+            );
+            ctx.stroke();
+        }
+        
+        function drawPowerUps() {
+            gameState.powerUps.forEach(powerUp => {
+                // Gradiente para o power-up
+                const gradient = ctx.createRadialGradient(
+                    powerUp.x, powerUp.y, 0,
+                    powerUp.x, powerUp.y, powerUp.radius
+                );
+                
+                if (powerUp.type === 'gravityReverse') {
+                    gradient.addColorStop(0, '#ff00aa');
+                    gradient.addColorStop(1, '#990066');
+                } else {
+                    gradient.addColorStop(0, '#00fffc');
+                    gradient.addColorStop(1, '#009999');
+                }
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(powerUp.x, powerUp.y, powerUp.radius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Efeito de brilho
+                ctx.shadowColor = gradient.colorStops[0].color;
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(powerUp.x, powerUp.y, powerUp.radius * 0.7, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+            });
+        }
+        
+        function drawPlayers() {
+            gameState.players.forEach((player, index) => {
+                // Gradiente para o jogador
+                const gradient = ctx.createRadialGradient(
+                    player.x, player.y, 0,
+                    player.x, player.y, config.playerRadius
+                );
+                gradient.addColorStop(0, player.color);
+                gradient.addColorStop(1, index === 0 ? '#006666' : '#660033');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(player.x, player.y, config.playerRadius, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Efeito de aura se tiver power-up
+                if (player.powerUp) {
+                    ctx.strokeStyle = player.powerUp === 'gravityReverse' ? '#ff00aa' : '#00fffc';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.arc(player.x, player.y, config.playerRadius + 5, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+            });
+        }
+        
+        function drawBall() {
+            // Gradiente para a bola
+            const gradient = ctx.createRadialGradient(
+                gameState.ball.x, gameState.ball.y, 0,
+                gameState.ball.x, gameState.ball.y, gameState.ball.radius
+            );
+            gradient.addColorStop(0, '#ffffff');
+            gradient.addColorStop(1, '#cccccc');
+            
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(gameState.ball.x, gameState.ball.y, gameState.ball.radius, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Efeito de movimento
+            if (Math.abs(gameState.ball.dx) > 1 || Math.abs(gameState.ball.dy) > 1) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(
+                    gameState.ball.x, 
+                    gameState.ball.y, 
+                    gameState.ball.radius + 3 + Math.random() * 3, 
+                    0, 
+                    Math.PI * 2
+                );
+                ctx.stroke();
+            }
+        }
+        
+        function drawSpecialEffects() {
+            // Efeito de gravidade reversa
+            if (gameState.players.some(p => p.powerUp === 'gravityReverse')) {
+                ctx.fillStyle = 'rgba(255, 0, 170, 0.1)';
+                ctx.fillRect(0, 0, config.width, config.height);
+                
+                // Partículas flutuantes
+                ctx.fillStyle = '#ff00aa';
+                for (let i = 0; i < 20; i++) {
+                    const x = Math.random() * config.width;
+                    const y = Math.random() * config.height;
+                    const size = Math.random() * 3 + 1;
+                    ctx.beginPath();
+                    ctx.arc(x, y, size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+        }
+        
+        function gameLoop() {
+            if (gameState.isPlaying) {
+                updatePlayers();
+                updateBall();
+                updatePowerUps();
+                updateTimer();
+            }
+            
+            render();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // Iniciar o jogo
+        initGame();
+    </script>
 </body>
 </html>
