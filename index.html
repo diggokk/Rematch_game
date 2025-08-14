@@ -3,13 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Galactic Soccer Revolution</title>
+    <title>Galactic Soccer Revolution PREMIUM</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+        
         body {
             margin: 0;
             overflow: hidden;
             background: #000;
-            font-family: 'Arial', sans-serif;
+            font-family: 'Orbitron', sans-serif;
+            touch-action: manipulation;
         }
         
         #gameContainer {
@@ -20,7 +23,7 @@
         
         #gameCanvas {
             display: block;
-            background: radial-gradient(ellipse at center, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            background: radial-gradient(ellipse at center, #0a0e23 0%, #000000 100%);
         }
         
         #uiOverlay {
@@ -30,43 +33,57 @@
             width: 100%;
             height: 100%;
             pointer-events: none;
+            z-index: 10;
         }
         
         .score {
             position: absolute;
-            top: 20px;
-            font-size: 3em;
+            top: 30px;
+            font-size: 4em;
             color: white;
-            text-shadow: 0 0 10px rgba(255,255,255,0.7);
+            text-shadow: 0 0 15px currentColor;
+            font-weight: 900;
         }
         
         #player1Score {
-            left: 30%;
+            left: 25%;
+            color: #00f7ff;
         }
         
         #player2Score {
-            right: 30%;
+            right: 25%;
+            color: #ff00f7;
         }
         
         #timer {
-            top: 20px;
+            top: 40px;
             left: 50%;
             transform: translateX(-50%);
             position: absolute;
-            font-size: 2em;
-            color: #00fffc;
+            font-size: 2.5em;
+            color: #ffffff;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 5px 20px;
+            border-radius: 50px;
+            border: 2px solid #ffffff;
+            text-shadow: 0 0 10px #ffffff;
         }
         
         #powerUpIndicator {
             position: absolute;
-            bottom: 20px;
+            bottom: 30px;
             left: 50%;
             transform: translateX(-50%);
             color: #ff00aa;
-            font-size: 1.5em;
-            text-shadow: 0 0 10px #ff00aa;
+            font-size: 1.8em;
+            text-shadow: 0 0 15px #ff00aa;
             opacity: 0;
             transition: opacity 0.3s;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 25px;
+            border-radius: 50px;
+            border: 2px solid #ff00aa;
+            white-space: nowrap;
         }
         
         #startScreen {
@@ -75,48 +92,94 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.8);
+            background: radial-gradient(ellipse at center, rgba(0, 10, 30, 0.9) 0%, rgba(0, 0, 10, 0.95) 100%);
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             color: white;
             z-index: 100;
+            backdrop-filter: blur(5px);
         }
         
         #startButton {
-            margin-top: 30px;
-            padding: 15px 30px;
-            font-size: 1.5em;
-            background: linear-gradient(45deg, #00fffc, #0088ff);
+            margin-top: 50px;
+            padding: 20px 40px;
+            font-size: 1.8em;
+            background: linear-gradient(45deg, #00f7ff, #0066ff);
             border: none;
             border-radius: 50px;
             color: white;
             cursor: pointer;
             pointer-events: auto;
-            box-shadow: 0 0 20px rgba(0, 255, 252, 0.5);
-            transition: transform 0.3s, box-shadow 0.3s;
+            box-shadow: 0 0 30px rgba(0, 247, 255, 0.7);
+            transition: all 0.3s;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
         
         #startButton:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 30px rgba(0, 255, 252, 0.8);
+            transform: scale(1.1);
+            box-shadow: 0 0 50px rgba(0, 247, 255, 0.9);
         }
         
         h1 {
-            font-size: 4em;
-            margin-bottom: 10px;
-            background: linear-gradient(45deg, #00fffc, #0088ff);
+            font-size: 5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #00f7ff, #0066ff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 20px rgba(0, 255, 252, 0.3);
+            text-shadow: 0 0 30px rgba(0, 247, 255, 0.5);
+            font-weight: 900;
+            letter-spacing: 5px;
+            text-align: center;
+            line-height: 1.2;
         }
         
         .instructions {
             text-align: center;
-            margin-top: 20px;
-            font-size: 1.2em;
+            margin-top: 15px;
+            font-size: 1.3em;
             color: #aaa;
+            max-width: 800px;
+            line-height: 1.6;
+        }
+        
+        .player-indicator {
+            position: absolute;
+            bottom: 20px;
+            font-size: 1.2em;
+            color: white;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 5px 15px;
+            border-radius: 20px;
+        }
+        
+        #player1Controls {
+            left: 20px;
+            border: 2px solid #00f7ff;
+            color: #00f7ff;
+        }
+        
+        #player2Controls {
+            right: 20px;
+            border: 2px solid #ff00f7;
+            color: #ff00f7;
+        }
+        
+        .goal-effect {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0);
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0;
+            transition: opacity 0.5s;
         }
     </style>
 </head>
@@ -124,53 +187,82 @@
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         
+        <div class="goal-effect" id="goalEffect"></div>
+        
         <div id="uiOverlay">
             <div id="player1Score" class="score">0</div>
             <div id="player2Score" class="score">0</div>
             <div id="timer">3:00</div>
             <div id="powerUpIndicator">GRAVIDADE REVERSIDA ATIVADA!</div>
+            
+            <div id="player1Controls" class="player-indicator">JOGADOR 1: WASD | Q</div>
+            <div id="player2Controls" class="player-indicator">JOGADOR 2: SETAS | M</div>
         </div>
         
         <div id="startScreen">
-            <h1>GALACTIC SOCCER REVOLUTION</h1>
-            <p class="instructions">O jogo de futebol intergaláctico do futuro!</p>
-            <p class="instructions">Jogador 1: WASD para mover, Q para habilidade especial</p>
-            <p class="instructions">Jogador 2: Setas para mover, M para habilidade especial</p>
+            <h1>GALACTIC SOCCER<br>REVOLUTION PREMIUM</h1>
+            <p class="instructions">A experiência definitiva de futebol intergaláctico</p>
+            <p class="instructions">Controles avançados com dribles, chutes especiais e power-ups cósmicos</p>
             <button id="startButton">INICIAR PARTIDA</button>
         </div>
     </div>
 
     <script>
-        // Configurações do jogo
+        // Configurações avançadas do jogo
         const config = {
             width: window.innerWidth,
             height: window.innerHeight,
-            fieldColor: '#1a3a1a',
-            fieldLineColor: '#ffffff',
-            player1Color: '#00fffc',
-            player2Color: '#ff00aa',
+            fieldColor: '#0a3a1a',
+            fieldLineColor: '#00ffaa',
+            player1Color: '#00f7ff',
+            player2Color: '#ff00f7',
             ballColor: '#ffffff',
-            gravity: 0.2,
-            playerSpeed: 5,
-            playerRadius: 30,
-            ballRadius: 20,
-            powerUpDuration: 10000, // 10 segundos
-            matchDuration: 180000 // 3 minutos
+            gravity: 0.3,
+            playerSpeed: 6,
+            playerWidth: 40,
+            playerHeight: 80,
+            ballRadius: 18,
+            powerUpDuration: 10000,
+            matchDuration: 180000,
+            playerAnimSpeed: 0.2,
+            specialKickPower: 15,
+            dashPower: 10,
+            dashCooldown: 2000
         };
         
-        // Estado do jogo
+        // Estado avançado do jogo
         const gameState = {
             players: [
-                { x: 0, y: 0, dx: 0, dy: 0, score: 0, powerUp: null, powerUpEndTime: 0, color: config.player1Color },
-                { x: 0, y: 0, dx: 0, dy: 0, score: 0, powerUp: null, powerUpEndTime: 0, color: config.player2Color }
+                { 
+                    x: 0, y: 0, dx: 0, dy: 0, score: 0, 
+                    powerUp: null, powerUpEndTime: 0, 
+                    color: config.player1Color, 
+                    facing: 1, // 1 = direita, -1 = esquerda
+                    animFrame: 0,
+                    isDashing: false,
+                    dashCooldown: 0,
+                    specialKickReady: true
+                },
+                { 
+                    x: 0, y: 0, dx: 0, dy: 0, score: 0, 
+                    powerUp: null, powerUpEndTime: 0, 
+                    color: config.player2Color, 
+                    facing: -1,
+                    animFrame: 0,
+                    isDashing: false,
+                    dashCooldown: 0,
+                    specialKickReady: true
+                }
             ],
-            ball: { x: 0, y: 0, dx: 0, dy: 0, radius: config.ballRadius },
+            ball: { x: 0, y: 0, dx: 0, dy: 0, radius: config.ballRadius, lastTouch: null },
             powerUps: [],
             lastPowerUpTime: 0,
-            powerUpInterval: 15000, // 15 segundos
+            powerUpInterval: 15000,
             matchStartTime: 0,
             isPlaying: false,
-            keys: {}
+            keys: {},
+            effects: [],
+            lastFrameTime: 0
         };
         
         // Elementos do DOM
@@ -182,6 +274,41 @@
         const powerUpIndicator = document.getElementById('powerUpIndicator');
         const startScreen = document.getElementById('startScreen');
         const startButton = document.getElementById('startButton');
+        const goalEffect = document.getElementById('goalEffect');
+        
+        // Sprites dos jogadores
+        const playerSprites = {
+            body: [
+                // Frame 0 - perna direita para frente
+                { parts: [
+                    { type: 'circle', x: 0, y: -25, radius: 15, color: 'body' }, // cabeça
+                    { type: 'rect', x: 0, y: 0, width: 10, height: 40, color: 'body' }, // torso
+                    { type: 'line', x1: 0, y1: 20, x2: -15, y2: 10, width: 5, color: 'body' }, // braço esquerdo
+                    { type: 'line', x1: 0, y1: 20, x2: 15, y2: 30, width: 5, color: 'body' }, // braço direito
+                    { type: 'line', x1: 0, y1: 40, x2: -10, y2: 70, width: 6, color: 'body' }, // perna esquerda
+                    { type: 'line', x1: 0, y1: 40, x2: 15, y2: 60, width: 6, color: 'body' }  // perna direita
+                ]},
+                // Frame 1 - perna esquerda para frente
+                { parts: [
+                    { type: 'circle', x: 0, y: -25, radius: 15, color: 'body' },
+                    { type: 'rect', x: 0, y: 0, width: 10, height: 40, color: 'body' },
+                    { type: 'line', x1: 0, y1: 20, x2: -15, y2: 30, width: 5, color: 'body' },
+                    { type: 'line', x1: 0, y1: 20, x2: 15, y2: 10, width: 5, color: 'body' },
+                    { type: 'line', x1: 0, y1: 40, x2: 10, y2: 70, width: 6, color: 'body' },
+                    { type: 'line', x1: 0, y1: 40, x2: -15, y2: 60, width: 6, color: 'body' }
+                ]}
+            ],
+            dash: [
+                { parts: [
+                    { type: 'circle', x: 0, y: -25, radius: 15, color: 'body' },
+                    { type: 'rect', x: 0, y: 0, width: 10, height: 40, color: 'body' },
+                    { type: 'line', x1: 0, y1: 20, x2: -25, y2: 10, width: 5, color: 'body' },
+                    { type: 'line', x1: 0, y1: 20, x2: 25, y2: 10, width: 5, color: 'body' },
+                    { type: 'line', x1: 0, y1: 40, x2: 0, y2: 70, width: 6, color: 'body' },
+                    { type: 'line', x1: 0, y1: 40, x2: 0, y2: 70, width: 6, color: 'body' }
+                ]}
+            ]
+        };
         
         // Inicialização do jogo
         function initGame() {
@@ -195,6 +322,7 @@
             startButton.addEventListener('click', startGame);
             
             // Iniciar loop do jogo
+            gameState.lastFrameTime = performance.now();
             requestAnimationFrame(gameLoop);
         }
         
@@ -213,18 +341,27 @@
             // Posicionar jogadores
             gameState.players[0].x = config.width * 0.25;
             gameState.players[0].y = config.height / 2;
+            gameState.players[0].dx = 0;
+            gameState.players[0].dy = 0;
+            gameState.players[0].facing = 1;
+            
             gameState.players[1].x = config.width * 0.75;
             gameState.players[1].y = config.height / 2;
+            gameState.players[1].dx = 0;
+            gameState.players[1].dy = 0;
+            gameState.players[1].facing = -1;
             
             // Posicionar bola no centro
             gameState.ball.x = config.width / 2;
             gameState.ball.y = config.height / 2;
             gameState.ball.dx = 0;
             gameState.ball.dy = 0;
+            gameState.ball.lastTouch = null;
             
             // Resetar power-ups
             gameState.powerUps = [];
             gameState.lastPowerUpTime = 0;
+            gameState.effects = [];
         }
         
         function startGame() {
@@ -238,22 +375,83 @@
         }
         
         function handleKeyDown(e) {
-            gameState.keys[e.key] = true;
+            gameState.keys[e.key.toLowerCase()] = true;
             
-            // Habilidades especiais
             if (gameState.isPlaying) {
-                if (e.key === 'q' && !gameState.players[0].powerUp) {
-                    activatePowerUp(0, 'gravityReverse');
+                // Habilidades especiais do jogador 1
+                if (e.key === 'q') {
+                    const player = gameState.players[0];
+                    if (!player.isDashing && player.dashCooldown <= 0) {
+                        activateDash(0);
+                    } else if (player.specialKickReady && gameState.ball.lastTouch === 0) {
+                        activateSpecialKick(0);
+                    }
                 }
                 
-                if (e.key === 'm' && !gameState.players[1].powerUp) {
-                    activatePowerUp(1, 'superSpeed');
+                // Habilidades especiais do jogador 2
+                if (e.key === 'm') {
+                    const player = gameState.players[1];
+                    if (!player.isDashing && player.dashCooldown <= 0) {
+                        activateDash(1);
+                    } else if (player.specialKickReady && gameState.ball.lastTouch === 1) {
+                        activateSpecialKick(1);
+                    }
                 }
             }
         }
         
         function handleKeyUp(e) {
-            gameState.keys[e.key] = false;
+            gameState.keys[e.key.toLowerCase()] = false;
+        }
+        
+        function activateDash(playerIndex) {
+            const player = gameState.players[playerIndex];
+            player.isDashing = true;
+            player.dashCooldown = config.dashCooldown;
+            
+            // Aplicar impulso na direção que o jogador está virado
+            player.dx = config.dashPower * player.facing;
+            player.dy = 0;
+            
+            // Efeito visual
+            addEffect({
+                type: 'dash',
+                x: player.x,
+                y: player.y,
+                color: player.color,
+                angle: player.facing === 1 ? 0 : Math.PI,
+                lifetime: 300
+            });
+        }
+        
+        function activateSpecialKick(playerIndex) {
+            const player = gameState.players[playerIndex];
+            player.specialKickReady = false;
+            
+            // Calcular direção do chute
+            const angle = Math.atan2(
+                gameState.ball.y - player.y,
+                gameState.ball.x - player.x
+            );
+            
+            // Aplicar força na bola
+            gameState.ball.dx = Math.cos(angle) * config.specialKickPower;
+            gameState.ball.dy = Math.sin(angle) * config.specialKickPower;
+            
+            // Efeito visual
+            addEffect({
+                type: 'kick',
+                x: gameState.ball.x,
+                y: gameState.ball.y,
+                color: player.color,
+                angle: angle,
+                lifetime: 500
+            });
+            
+            // Recarregar chute especial após 3 segundos
+            setTimeout(() => {
+                player.specialKickReady = true;
+            }, 3000);
         }
         
         function activatePowerUp(playerIndex, type) {
@@ -263,13 +461,34 @@
             
             // Efeito visual
             powerUpIndicator.style.opacity = '1';
+            powerUpIndicator.style.color = type === 'gravityReverse' ? '#ff00f7' : '#00f7ff';
+            powerUpIndicator.style.borderColor = type === 'gravityReverse' ? '#ff00f7' : '#00f7ff';
             powerUpIndicator.textContent = type === 'gravityReverse' 
                 ? 'GRAVIDADE REVERSIDA ATIVADA!' 
-                : 'SUPER VELOCIDADE ATIVADA!';
+                : 'CAMPO ELETROMAGNÉTICO ATIVADO!';
             
             setTimeout(() => {
                 powerUpIndicator.style.opacity = '0';
             }, 2000);
+            
+            // Efeito de partículas
+            for (let i = 0; i < 50; i++) {
+                addEffect({
+                    type: 'particle',
+                    x: player.x,
+                    y: player.y,
+                    color: type === 'gravityReverse' ? '#ff00f7' : '#00f7ff',
+                    dx: (Math.random() - 0.5) * 5,
+                    dy: (Math.random() - 0.5) * 5,
+                    radius: Math.random() * 3 + 1,
+                    lifetime: 1000 + Math.random() * 1000
+                });
+            }
+        }
+        
+        function addEffect(effect) {
+            effect.createdAt = performance.now();
+            gameState.effects.push(effect);
         }
         
         function updatePowerUps() {
@@ -283,7 +502,8 @@
             });
             
             // Gerar novos power-ups
-            if (now - gameState.lastPowerUpTime > gameState.powerUpInterval) {
+            if (now - gameState.lastPowerUpTime > gameState.powerUpInterval && 
+                gameState.powerUps.length < 2) {
                 spawnPowerUp();
                 gameState.lastPowerUpTime = now;
             }
@@ -298,7 +518,7 @@
                 if (distanceToBall < config.ballRadius + powerUp.radius) {
                     // Ativar power-up aleatório para o jogador mais próximo
                     const playerIndex = gameState.ball.x < config.width / 2 ? 0 : 1;
-                    const types = ['gravityReverse', 'superSpeed'];
+                    const types = ['gravityReverse', 'magneticField'];
                     const randomType = types[Math.floor(Math.random() * types.length)];
                     
                     if (!gameState.players[playerIndex].powerUp) {
@@ -313,119 +533,189 @@
         }
         
         function spawnPowerUp() {
-            const types = ['gravityReverse', 'superSpeed'];
+            const types = ['gravityReverse', 'magneticField'];
             const type = types[Math.floor(Math.random() * types.length)];
             
             gameState.powerUps.push({
                 x: Math.random() * (config.width - 200) + 100,
                 y: Math.random() * (config.height - 200) + 100,
-                radius: 15,
-                type: type
+                radius: 20,
+                type: type,
+                animOffset: Math.random() * Math.PI * 2
             });
         }
         
-        function updatePlayers() {
+        function updatePlayers(deltaTime) {
             gameState.players.forEach((player, index) => {
-                // Controles do jogador 1 (WASD)
-                if (index === 0) {
+                // Atualizar cooldowns
+                if (player.dashCooldown > 0) {
+                    player.dashCooldown -= deltaTime;
+                }
+                
+                // Verificar se dash terminou
+                if (player.isDashing && player.dashCooldown <= config.dashCooldown * 0.8) {
+                    player.isDashing = false;
+                    player.dx = 0;
+                    player.dy = 0;
+                }
+                
+                // Apenas atualizar movimento se não estiver em dash
+                if (!player.isDashing) {
                     player.dx = 0;
                     player.dy = 0;
                     
-                    if (gameState.keys['w'] || gameState.keys['W']) player.dy = -config.playerSpeed;
-                    if (gameState.keys['s'] || gameState.keys['S']) player.dy = config.playerSpeed;
-                    if (gameState.keys['a'] || gameState.keys['A']) player.dx = -config.playerSpeed;
-                    if (gameState.keys['d'] || gameState.keys['D']) player.dx = config.playerSpeed;
-                }
-                
-                // Controles do jogador 2 (setas)
-                if (index === 1) {
-                    player.dx = 0;
-                    player.dy = 0;
+                    // Controles do jogador 1 (WASD)
+                    if (index === 0) {
+                        if (gameState.keys['w']) player.dy = -config.playerSpeed;
+                        if (gameState.keys['s']) player.dy = config.playerSpeed;
+                        if (gameState.keys['a']) {
+                            player.dx = -config.playerSpeed;
+                            player.facing = -1;
+                        }
+                        if (gameState.keys['d']) {
+                            player.dx = config.playerSpeed;
+                            player.facing = 1;
+                        }
+                    }
                     
-                    if (gameState.keys['ArrowUp']) player.dy = -config.playerSpeed;
-                    if (gameState.keys['ArrowDown']) player.dy = config.playerSpeed;
-                    if (gameState.keys['ArrowLeft']) player.dx = -config.playerSpeed;
-                    if (gameState.keys['ArrowRight']) player.dx = config.playerSpeed;
-                }
-                
-                // Aplicar super velocidade se tiver o power-up
-                if (player.powerUp === 'superSpeed') {
-                    player.dx *= 2;
-                    player.dy *= 2;
+                    // Controles do jogador 2 (setas)
+                    if (index === 1) {
+                        if (gameState.keys['arrowup']) player.dy = -config.playerSpeed;
+                        if (gameState.keys['arrowdown']) player.dy = config.playerSpeed;
+                        if (gameState.keys['arrowleft']) {
+                            player.dx = -config.playerSpeed;
+                            player.facing = -1;
+                        }
+                        if (gameState.keys['arrowright']) {
+                            player.dx = config.playerSpeed;
+                            player.facing = 1;
+                        }
+                    }
+                    
+                    // Aplicar efeito do power-up magneticField
+                    if (player.powerUp === 'magneticField') {
+                        const dx = gameState.ball.x - player.x;
+                        const dy = gameState.ball.y - player.y;
+                        const distance = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (distance < 200) {
+                            const force = (200 - distance) / 10;
+                            gameState.ball.dx += (dx / distance) * force * deltaTime / 16;
+                            gameState.ball.dy += (dy / distance) * force * deltaTime / 16;
+                        }
+                    }
                 }
                 
                 // Atualizar posição
-                player.x += player.dx;
-                player.y += player.dy;
+                player.x += player.dx * deltaTime / 16;
+                player.y += player.dy * deltaTime / 16;
                 
                 // Manter dentro dos limites
-                player.x = Math.max(config.playerRadius, Math.min(config.width - config.playerRadius, player.x));
-                player.y = Math.max(config.playerRadius, Math.min(config.height - config.playerRadius, player.y));
+                const halfWidth = config.playerWidth / 2;
+                const halfHeight = config.playerHeight / 2;
+                
+                player.x = Math.max(halfWidth, Math.min(config.width - halfWidth, player.x));
+                player.y = Math.max(halfHeight, Math.min(config.height - halfHeight, player.y));
+                
+                // Atualizar animação
+                if (player.dx !== 0 || player.dy !== 0) {
+                    player.animFrame += config.playerAnimSpeed * deltaTime / 16;
+                }
+                
+                // Verificar colisão com a bola
+                const ball = gameState.ball;
+                const dx = ball.x - player.x;
+                const dy = ball.y - player.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const minDistance = config.ballRadius + (player.isDashing ? 30 : 20);
+                
+                if (distance < minDistance) {
+                    // Registrar que este jogador tocou na bola por último
+                    gameState.ball.lastTouch = index;
+                    
+                    // Calcular ângulo e força
+                    const angle = Math.atan2(dy, dx);
+                    let force = 8 + Math.sqrt(player.dx * player.dx + player.dy * player.dy);
+                    
+                    // Aumentar força se estiver em dash
+                    if (player.isDashing) {
+                        force *= 1.5;
+                        
+                        // Efeito de impacto
+                        addEffect({
+                            type: 'impact',
+                            x: ball.x,
+                            y: ball.y,
+                            color: player.color,
+                            radius: 30,
+                            lifetime: 200
+                        });
+                    }
+                    
+                    // Rebater a bola
+                    ball.dx = Math.cos(angle) * force;
+                    ball.dy = Math.sin(angle) * force;
+                    
+                    // Adicionar velocidade do jogador
+                    ball.dx += player.dx * 0.5;
+                    ball.dy += player.dy * 0.5;
+                }
             });
         }
         
-        function updateBall() {
+        function updateBall(deltaTime) {
+            const ball = gameState.ball;
+            
             // Aplicar física da bola
-            gameState.ball.x += gameState.ball.dx;
-            gameState.ball.y += gameState.ball.dy;
+            ball.x += ball.dx * deltaTime / 16;
+            ball.y += ball.dy * deltaTime / 16;
             
             // Aplicar gravidade (ou reverso se tiver power-up)
             const gravityMultiplier = gameState.players.some(p => p.powerUp === 'gravityReverse') ? -1 : 1;
-            gameState.ball.dy += config.gravity * gravityMultiplier;
+            ball.dy += config.gravity * gravityMultiplier * deltaTime / 16;
             
             // Resistência do ar
-            gameState.ball.dx *= 0.99;
-            gameState.ball.dy *= 0.99;
+            ball.dx *= Math.pow(0.99, deltaTime / 16);
+            ball.dy *= Math.pow(0.99, deltaTime / 16);
             
             // Colisão com paredes
-            if (gameState.ball.x - gameState.ball.radius < 0) {
-                gameState.ball.x = gameState.ball.radius;
-                gameState.ball.dx = -gameState.ball.dx * 0.8;
+            if (ball.x - ball.radius < 0) {
+                ball.x = ball.radius;
+                ball.dx = -ball.dx * 0.7;
                 scoreGoal(1);
             }
             
-            if (gameState.ball.x + gameState.ball.radius > config.width) {
-                gameState.ball.x = config.width - gameState.ball.radius;
-                gameState.ball.dx = -gameState.ball.dx * 0.8;
+            if (ball.x + ball.radius > config.width) {
+                ball.x = config.width - ball.radius;
+                ball.dx = -ball.dx * 0.7;
                 scoreGoal(0);
             }
             
-            if (gameState.ball.y - gameState.ball.radius < 0) {
-                gameState.ball.y = gameState.ball.radius;
-                gameState.ball.dy = -gameState.ball.dy * 0.8;
+            if (ball.y - ball.radius < 0) {
+                ball.y = ball.radius;
+                ball.dy = -ball.dy * 0.7;
             }
             
-            if (gameState.ball.y + gameState.ball.radius > config.height) {
-                gameState.ball.y = config.height - gameState.ball.radius;
-                gameState.ball.dy = -gameState.ball.dy * 0.8;
+            if (ball.y + ball.radius > config.height) {
+                ball.y = config.height - ball.radius;
+                ball.dy = -ball.dy * 0.7;
             }
-            
-            // Colisão com jogadores
-            gameState.players.forEach(player => {
-                const dx = gameState.ball.x - player.x;
-                const dy = gameState.ball.y - player.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance < config.playerRadius + gameState.ball.radius) {
-                    // Calcular ângulo e força
-                    const angle = Math.atan2(dy, dx);
-                    const force = 10;
-                    
-                    // Rebater a bola
-                    gameState.ball.dx = Math.cos(angle) * force;
-                    gameState.ball.dy = Math.sin(angle) * force;
-                    
-                    // Adicionar velocidade do jogador
-                    gameState.ball.dx += player.dx * 0.5;
-                    gameState.ball.dy += player.dy * 0.5;
-                }
-            });
         }
         
         function scoreGoal(playerIndex) {
             gameState.players[playerIndex].score++;
             updateScore();
-            resetPositions();
+            
+            // Efeito visual
+            goalEffect.style.backgroundColor = playerIndex === 0 
+                ? 'rgba(0, 247, 255, 0.3)' 
+                : 'rgba(255, 0, 247, 0.3)';
+            goalEffect.style.opacity = '1';
+            
+            setTimeout(() => {
+                goalEffect.style.opacity = '0';
+                resetPositions();
+            }, 1000);
         }
         
         function updateScore() {
@@ -449,22 +739,32 @@
             }
         }
         
+        function updateEffects(deltaTime) {
+            const now = performance.now();
+            
+            // Atualizar e filtrar efeitos
+            gameState.effects = gameState.effects.filter(effect => {
+                effect.age = now - effect.createdAt;
+                return effect.age < effect.lifetime;
+            });
+        }
+        
         function endGame() {
             gameState.isPlaying = false;
             
             let winner = null;
             if (gameState.players[0].score > gameState.players[1].score) {
-                winner = "Jogador 1 venceu!";
+                winner = "JOGADOR 1 VENCEU!";
             } else if (gameState.players[1].score > gameState.players[0].score) {
-                winner = "Jogador 2 venceu!";
+                winner = "JOGADOR 2 VENCEU!";
             } else {
-                winner = "Empate!";
+                winner = "EMPATE!";
             }
             
             startScreen.innerHTML = `
                 <h1>FIM DE JOGO</h1>
                 <p class="instructions">${winner}</p>
-                <p class="instructions">Placar final: ${gameState.players[0].score} - ${gameState.players[1].score}</p>
+                <p class="instructions">PLACAR FINAL: ${gameState.players[0].score} - ${gameState.players[1].score}</p>
                 <button id="startButton">JOGAR NOVAMENTE</button>
             `;
             
@@ -485,68 +785,127 @@
             // Desenhar power-ups
             drawPowerUps();
             
-            // Desenhar jogadores
-            drawPlayers();
+            // Desenhar efeitos
+            drawEffects();
             
             // Desenhar bola
             drawBall();
             
-            // Efeitos especiais
-            drawSpecialEffects();
+            // Desenhar jogadores
+            drawPlayers();
         }
         
         function drawStarfield() {
-            // Fundo estelar simples
+            // Fundo estelar com estrelas brilhantes
             ctx.fillStyle = '#ffffff';
-            for (let i = 0; i < 200; i++) {
+            for (let i = 0; i < 300; i++) {
                 const x = Math.random() * config.width;
                 const y = Math.random() * config.height;
                 const radius = Math.random() * 1.5;
+                const alpha = Math.random() * 0.8 + 0.2;
+                
+                ctx.globalAlpha = alpha;
                 ctx.beginPath();
                 ctx.arc(x, y, radius, 0, Math.PI * 2);
                 ctx.fill();
+                
+                // Brilho ao redor de algumas estrelas
+                if (Math.random() > 0.9) {
+                    ctx.shadowColor = 'white';
+                    ctx.shadowBlur = 10;
+                    ctx.beginPath();
+                    ctx.arc(x, y, radius * 2, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
             }
+            ctx.globalAlpha = 1;
+            
+            // Nebulosa colorida
+            const nebulaGradient = ctx.createRadialGradient(
+                config.width * 0.3, config.height * 0.7, 0,
+                config.width * 0.3, config.height * 0.7, config.width * 0.8
+            );
+            nebulaGradient.addColorStop(0, 'rgba(0, 100, 255, 0.1)');
+            nebulaGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            
+            ctx.fillStyle = nebulaGradient;
+            ctx.beginPath();
+            ctx.arc(
+                config.width * 0.3, config.height * 0.7, 
+                config.width * 0.8, 0, Math.PI * 2
+            );
+            ctx.fill();
+            
+            // Segunda nebulosa
+            const nebulaGradient2 = ctx.createRadialGradient(
+                config.width * 0.7, config.height * 0.3, 0,
+                config.width * 0.7, config.height * 0.3, config.width * 0.6
+            );
+            nebulaGradient2.addColorStop(0, 'rgba(255, 0, 200, 0.1)');
+            nebulaGradient2.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            
+            ctx.fillStyle = nebulaGradient2;
+            ctx.beginPath();
+            ctx.arc(
+                config.width * 0.7, config.height * 0.3, 
+                config.width * 0.6, 0, Math.PI * 2
+            );
+            ctx.fill();
         }
         
         function drawField() {
-            // Campo flutuante
             const centerX = config.width / 2;
             const centerY = config.height / 2;
-            const fieldWidth = config.width * 0.8;
-            const fieldHeight = config.height * 0.7;
+            const fieldWidth = config.width * 0.85;
+            const fieldHeight = config.height * 0.75;
+            const cornerRadius = 30;
             
-            // Gradiente para o campo
-            const fieldGradient = ctx.createLinearGradient(0, 0, 0, config.height);
-            fieldGradient.addColorStop(0, '#1a3a1a');
-            fieldGradient.addColorStop(1, '#0a2a0a');
+            // Gradiente para o campo com efeito 3D
+            const fieldGradient = ctx.createLinearGradient(0, centerY - fieldHeight/2, 0, centerY + fieldHeight/2);
+            fieldGradient.addColorStop(0, '#0a3a1a');
+            fieldGradient.addColorStop(0.5, '#1a6a2a');
+            fieldGradient.addColorStop(1, '#0a3a1a');
             
+            // Sombra do campo
+            ctx.shadowColor = 'rgba(0, 255, 170, 0.3)';
+            ctx.shadowBlur = 40;
+            ctx.shadowOffsetY = 10;
+            
+            // Campo principal
             ctx.fillStyle = fieldGradient;
-            ctx.shadowColor = 'rgba(0, 255, 252, 0.5)';
-            ctx.shadowBlur = 20;
             ctx.beginPath();
             ctx.roundRect(
                 centerX - fieldWidth / 2, 
                 centerY - fieldHeight / 2, 
                 fieldWidth, 
                 fieldHeight, 
-                20
+                cornerRadius
             );
             ctx.fill();
-            ctx.shadowBlur = 0;
             
-            // Linhas do campo
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetY = 0;
+            
+            // Linhas do campo com efeito neon
             ctx.strokeStyle = config.fieldLineColor;
-            ctx.lineWidth = 3;
+            ctx.lineWidth = 4;
+            ctx.globalCompositeOperation = 'lighter';
             
             // Linha central
             ctx.beginPath();
-            ctx.moveTo(centerX, centerY - fieldHeight / 2);
-            ctx.lineTo(centerX, centerY + fieldHeight / 2);
+            ctx.moveTo(centerX, centerY - fieldHeight / 2 + cornerRadius);
+            ctx.lineTo(centerX, centerY + fieldHeight / 2 - cornerRadius);
             ctx.stroke();
             
             // Círculo central
             ctx.beginPath();
-            ctx.arc(centerX, centerY, 50, 0, Math.PI * 2);
+            ctx.arc(centerX, centerY, 70, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Linha do meio-campo
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, 70, -Math.PI/2, Math.PI/2, true);
             ctx.stroke();
             
             // Áreas
@@ -572,120 +931,311 @@
                 areaHeight
             );
             ctx.stroke();
+            
+            // Pequenos arcos nas áreas
+            const smallArcRadius = 30;
+            
+            // Área esquerda
+            ctx.beginPath();
+            ctx.arc(
+                centerX - fieldWidth / 2 + areaWidth, 
+                centerY, 
+                smallArcRadius, 
+                -Math.PI/2, 
+                Math.PI/2
+            );
+            ctx.stroke();
+            
+            // Área direita
+            ctx.beginPath();
+            ctx.arc(
+                centerX + fieldWidth / 2 - areaWidth, 
+                centerY, 
+                smallArcRadius, 
+                Math.PI/2, 
+                -Math.PI/2
+            );
+            ctx.stroke();
+            
+            ctx.globalCompositeOperation = 'source-over';
+            
+            // Efeito de grade holográfica
+            ctx.strokeStyle = 'rgba(0, 255, 170, 0.1)';
+            ctx.lineWidth = 1;
+            
+            // Linhas horizontais
+            for (let y = centerY - fieldHeight/2 + 50; y < centerY + fieldHeight/2; y += 50) {
+                ctx.beginPath();
+                ctx.moveTo(centerX - fieldWidth/2, y);
+                ctx.lineTo(centerX + fieldWidth/2, y);
+                ctx.stroke();
+            }
+            
+            // Linhas verticais
+            for (let x = centerX - fieldWidth/2 + 50; x < centerX + fieldWidth/2; x += 50) {
+                ctx.beginPath();
+                ctx.moveTo(x, centerY - fieldHeight/2);
+                ctx.lineTo(x, centerY + fieldHeight/2);
+                ctx.stroke();
+            }
         }
         
         function drawPowerUps() {
+            const now = performance.now();
+            
             gameState.powerUps.forEach(powerUp => {
+                const pulse = Math.sin(now * 0.005 + powerUp.animOffset) * 0.2 + 0.8;
+                const size = powerUp.radius * pulse;
+                
                 // Gradiente para o power-up
                 const gradient = ctx.createRadialGradient(
                     powerUp.x, powerUp.y, 0,
-                    powerUp.x, powerUp.y, powerUp.radius
+                    powerUp.x, powerUp.y, size
                 );
                 
                 if (powerUp.type === 'gravityReverse') {
-                    gradient.addColorStop(0, '#ff00aa');
-                    gradient.addColorStop(1, '#990066');
+                    gradient.addColorStop(0, '#ff00f7');
+                    gradient.addColorStop(1, '#990099');
                 } else {
-                    gradient.addColorStop(0, '#00fffc');
+                    gradient.addColorStop(0, '#00f7ff');
                     gradient.addColorStop(1, '#009999');
                 }
                 
+                // Desenhar aura
+                ctx.shadowColor = powerUp.type === 'gravityReverse' ? '#ff00f7' : '#00f7ff';
+                ctx.shadowBlur = 20 * pulse;
                 ctx.fillStyle = gradient;
                 ctx.beginPath();
-                ctx.arc(powerUp.x, powerUp.y, powerUp.radius, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Efeito de brilho
-                ctx.shadowColor = gradient.colorStops[0].color;
-                ctx.shadowBlur = 15;
-                ctx.beginPath();
-                ctx.arc(powerUp.x, powerUp.y, powerUp.radius * 0.7, 0, Math.PI * 2);
+                ctx.arc(powerUp.x, powerUp.y, size, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.shadowBlur = 0;
+                
+                // Desenhar ícone
+                ctx.fillStyle = 'white';
+                ctx.font = `${size}px Arial`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(
+                    powerUp.type === 'gravityReverse' ? '⇅' : '⚡', 
+                    powerUp.x, 
+                    powerUp.y
+                );
+            });
+        }
+        
+        function drawEffects() {
+            gameState.effects.forEach(effect => {
+                const progress = effect.age / effect.lifetime;
+                
+                switch (effect.type) {
+                    case 'particle':
+                        ctx.globalAlpha = 1 - progress;
+                        ctx.fillStyle = effect.color;
+                        ctx.beginPath();
+                        ctx.arc(
+                            effect.x + effect.dx * effect.age / 1000,
+                            effect.y + effect.dy * effect.age / 1000,
+                            effect.radius * (1 - progress * 0.5),
+                            0, Math.PI * 2
+                        );
+                        ctx.fill();
+                        ctx.globalAlpha = 1;
+                        break;
+                        
+                    case 'dash':
+                        ctx.strokeStyle = effect.color;
+                        ctx.lineWidth = 10 * (1 - progress);
+                        ctx.globalAlpha = 1 - progress * 0.5;
+                        ctx.beginPath();
+                        ctx.moveTo(effect.x, effect.y);
+                        ctx.lineTo(
+                            effect.x + Math.cos(effect.angle) * 100 * progress,
+                            effect.y + Math.sin(effect.angle) * 100 * progress
+                        );
+                        ctx.stroke();
+                        ctx.globalAlpha = 1;
+                        break;
+                        
+                    case 'kick':
+                        ctx.strokeStyle = effect.color;
+                        ctx.lineWidth = 8 * (1 - progress);
+                        ctx.globalAlpha = 1 - progress;
+                        ctx.beginPath();
+                        ctx.moveTo(effect.x, effect.y);
+                        ctx.lineTo(
+                            effect.x + Math.cos(effect.angle) * 80 * progress,
+                            effect.y + Math.sin(effect.angle) * 80 * progress
+                        );
+                        ctx.stroke();
+                        ctx.globalAlpha = 1;
+                        break;
+                        
+                    case 'impact':
+                        ctx.strokeStyle = effect.color;
+                        ctx.lineWidth = 3;
+                        ctx.globalAlpha = 1 - progress;
+                        ctx.beginPath();
+                        ctx.arc(
+                            effect.x, effect.y,
+                            effect.radius * progress,
+                            0, Math.PI * 2
+                        );
+                        ctx.stroke();
+                        ctx.globalAlpha = 1;
+                        break;
+                }
             });
         }
         
         function drawPlayers() {
             gameState.players.forEach((player, index) => {
-                // Gradiente para o jogador
-                const gradient = ctx.createRadialGradient(
-                    player.x, player.y, 0,
-                    player.x, player.y, config.playerRadius
-                );
-                gradient.addColorStop(0, player.color);
-                gradient.addColorStop(1, index === 0 ? '#006666' : '#660033');
+                ctx.save();
+                ctx.translate(player.x, player.y);
+                ctx.scale(player.facing, 1);
                 
-                ctx.fillStyle = gradient;
-                ctx.beginPath();
-                ctx.arc(player.x, player.y, config.playerRadius, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Efeito de aura se tiver power-up
-                if (player.powerUp) {
-                    ctx.strokeStyle = player.powerUp === 'gravityReverse' ? '#ff00aa' : '#00fffc';
-                    ctx.lineWidth = 3;
-                    ctx.beginPath();
-                    ctx.arc(player.x, player.y, config.playerRadius + 5, 0, Math.PI * 2);
-                    ctx.stroke();
+                // Escolher sprite baseado no estado
+                let sprite;
+                if (player.isDashing) {
+                    sprite = playerSprites.dash[0];
+                } else {
+                    const frame = Math.floor(player.animFrame) % playerSprites.body.length;
+                    sprite = playerSprites.body[frame];
                 }
+                
+                // Desenhar partes do sprite
+                sprite.parts.forEach(part => {
+                    const color = part.color === 'body' ? player.color : '#ffffff';
+                    ctx.fillStyle = color;
+                    ctx.strokeStyle = color;
+                    
+                    switch (part.type) {
+                        case 'circle':
+                            ctx.beginPath();
+                            ctx.arc(part.x, part.y, part.radius, 0, Math.PI * 2);
+                            ctx.fill();
+                            break;
+                            
+                        case 'rect':
+                            ctx.fillRect(
+                                part.x - part.width/2, 
+                                part.y, 
+                                part.width, 
+                                part.height
+                            );
+                            break;
+                            
+                        case 'line':
+                            ctx.lineWidth = part.width;
+                            ctx.beginPath();
+                            ctx.moveTo(part.x1, part.y1);
+                            ctx.lineTo(part.x2, part.y2);
+                            ctx.stroke();
+                            break;
+                    }
+                });
+                
+                // Desenhar aura se tiver power-up
+                if (player.powerUp) {
+                    ctx.strokeStyle = player.powerUp === 'gravityReverse' ? '#ff00f7' : '#00f7ff';
+                    ctx.lineWidth = 3;
+                    ctx.globalAlpha = 0.7;
+                    ctx.beginPath();
+                    ctx.arc(0, 0, config.playerWidth/2 + 10, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.globalAlpha = 1;
+                }
+                
+                // Desenhar indicador de chute especial
+                if (player.specialKickReady && gameState.ball.lastTouch === index) {
+                    ctx.fillStyle = player.color;
+                    ctx.beginPath();
+                    ctx.arc(0, -40, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                
+                ctx.restore();
             });
         }
         
         function drawBall() {
+            const ball = gameState.ball;
+            
             // Gradiente para a bola
             const gradient = ctx.createRadialGradient(
-                gameState.ball.x, gameState.ball.y, 0,
-                gameState.ball.x, gameState.ball.y, gameState.ball.radius
+                ball.x, ball.y, 0,
+                ball.x, ball.y, ball.radius
             );
             gradient.addColorStop(0, '#ffffff');
-            gradient.addColorStop(1, '#cccccc');
+            gradient.addColorStop(0.7, '#cccccc');
+            gradient.addColorStop(1, '#aaaaaa');
             
+            // Desenhar bola
             ctx.fillStyle = gradient;
             ctx.beginPath();
-            ctx.arc(gameState.ball.x, gameState.ball.y, gameState.ball.radius, 0, Math.PI * 2);
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
             ctx.fill();
             
+            // Desenhar padrão hexagonal na bola
+            ctx.strokeStyle = 'rgba(0, 0, 0, 0.3)';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < 6; i++) {
+                const angle = (i * Math.PI / 3) + (ball.dx * 0.1);
+                ctx.beginPath();
+                ctx.arc(
+                    ball.x + Math.cos(angle) * ball.radius * 0.7,
+                    ball.y + Math.sin(angle) * ball.radius * 0.7,
+                    ball.radius * 0.3,
+                    0, Math.PI * 2
+                );
+                ctx.stroke();
+            }
+            
             // Efeito de movimento
-            if (Math.abs(gameState.ball.dx) > 1 || Math.abs(gameState.ball.dy) > 1) {
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+            if (Math.abs(ball.dx) > 1 || Math.abs(ball.dy) > 1) {
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.arc(
-                    gameState.ball.x, 
-                    gameState.ball.y, 
-                    gameState.ball.radius + 3 + Math.random() * 3, 
+                    ball.x, 
+                    ball.y, 
+                    ball.radius + 5 + Math.random() * 3, 
                     0, 
                     Math.PI * 2
                 );
                 ctx.stroke();
-            }
-        }
-        
-        function drawSpecialEffects() {
-            // Efeito de gravidade reversa
-            if (gameState.players.some(p => p.powerUp === 'gravityReverse')) {
-                ctx.fillStyle = 'rgba(255, 0, 170, 0.1)';
-                ctx.fillRect(0, 0, config.width, config.height);
                 
-                // Partículas flutuantes
-                ctx.fillStyle = '#ff00aa';
-                for (let i = 0; i < 20; i++) {
-                    const x = Math.random() * config.width;
-                    const y = Math.random() * config.height;
-                    const size = Math.random() * 3 + 1;
+                // Rastro
+                const speed = Math.sqrt(ball.dx * ball.dx + ball.dy * ball.dy);
+                if (speed > 5) {
+                    ctx.strokeStyle = `rgba(255, 255, 255, ${Math.min(0.5, speed / 30)})`;
+                    ctx.lineWidth = 2;
                     ctx.beginPath();
-                    ctx.arc(x, y, size, 0, Math.PI * 2);
-                    ctx.fill();
+                    ctx.moveTo(ball.x, ball.y);
+                    ctx.lineTo(
+                        ball.x - ball.dx * 0.2,
+                        ball.y - ball.dy * 0.2
+                    );
+                    ctx.stroke();
                 }
             }
+            
+            // Efeito de power-up de gravidade reversa
+            if (gameState.players.some(p => p.powerUp === 'gravityReverse')) {
+                ctx.fillStyle = 'rgba(255, 0, 247, 0.1)';
+                ctx.fillRect(0, 0, config.width, config.height);
+            }
         }
         
-        function gameLoop() {
+        function gameLoop(timestamp) {
+            const deltaTime = timestamp - gameState.lastFrameTime;
+            gameState.lastFrameTime = timestamp;
+            
             if (gameState.isPlaying) {
-                updatePlayers();
-                updateBall();
+                updatePlayers(deltaTime);
+                updateBall(deltaTime);
                 updatePowerUps();
                 updateTimer();
+                updateEffects(deltaTime);
             }
             
             render();
